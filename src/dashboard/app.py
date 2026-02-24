@@ -717,22 +717,18 @@ with tab_platform:
 
         # ── STEP 0: Engine scores patient ────────────────────────
         if step == 0:
-            col_btn, col_result = st.columns([1, 2])
-            with col_btn:
-                st.markdown(f"""
-                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
-                            padding:1.25rem; height:100%;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                color:#888; margin-bottom:0.5rem;">What happens</div>
-                    <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;
-                                margin-bottom:1rem;">
-                        The model scores <strong>{jp_id}</strong> across 50+ variables —
-                        fill history, copay burden, diagnosis, refill gaps.
-                    </div>
+            st.markdown(f"""
+            <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
+                        padding:1.25rem; margin-bottom:0.75rem;">
+                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                            color:#888; margin-bottom:0.5rem;">What happens</div>
+                <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
+                    The model scores <strong>{jp_id}</strong> across 50+ variables —
+                    fill history, copay burden, diagnosis, refill gaps.
                 </div>
-                """, unsafe_allow_html=True)
-            with col_result:
-                if st.button("▶  Run scoring", key="journey_btn_0", use_container_width=True):
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("▶  Run scoring", key="journey_btn_0", use_container_width=True):
                     with st.spinner("Scoring patient…"):
                         import time as _time
                         _time.sleep(0.8)
@@ -802,22 +798,19 @@ with tab_platform:
 
         # ── STEP 1: Outreach triggered ────────────────────────────
         elif step == 1:
-            col_btn, col_result = st.columns([1, 2])
             _sms_msg = f"Hi, your {jp_med} refill is {jp_gap} days overdue. Reply YES to schedule pickup, or HELP if you need assistance with costs."
-            with col_btn:
-                st.markdown(f"""
-                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
-                            padding:1.25rem;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                color:#888; margin-bottom:0.5rem;">What happens</div>
-                    <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
-                        Because the score exceeds the threshold, the engine
-                        automatically drafts and sends an SMS — no care manager involved.
-                    </div>
+            st.markdown(f"""
+            <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
+                        padding:1.25rem; margin-bottom:0.75rem;">
+                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                            color:#888; margin-bottom:0.5rem;">What happens</div>
+                <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
+                    Because the score exceeds the threshold, the engine
+                    automatically drafts and sends an SMS — no care manager involved.
                 </div>
-                """, unsafe_allow_html=True)
-            with col_result:
-                if st.button("▶  Send outreach", key="journey_btn_1", use_container_width=True):
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("▶  Send outreach", key="journey_btn_1", use_container_width=True):
                     with st.spinner("Sending…"):
                         _time.sleep(0.6)
                         st.session_state["journey_outreach"] = {
@@ -848,21 +841,18 @@ with tab_platform:
 
         # ── STEP 2: Patient replies ───────────────────────────────
         elif step == 2:
-            col_btn, col_result = st.columns([1, 2])
-            with col_btn:
-                st.markdown(f"""
-                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
-                            padding:1.25rem;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                color:#888; margin-bottom:0.5rem;">What happens</div>
-                    <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
-                        The patient texts back. The AI identifies the barrier
-                        and responds with targeted support — no human reads the message.
-                    </div>
+            st.markdown(f"""
+            <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
+                        padding:1.25rem; margin-bottom:0.75rem;">
+                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                            color:#888; margin-bottom:0.5rem;">What happens</div>
+                <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
+                    The patient texts back. The AI identifies the barrier
+                    and responds with targeted support — no human reads the message.
                 </div>
-                """, unsafe_allow_html=True)
-            with col_result:
-                if st.button("▶  Patient: \"It's too expensive\"", key="journey_btn_2", use_container_width=True):
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("▶  Patient: \"It's too expensive\"", key="journey_btn_2", use_container_width=True):
                     with st.spinner("AI responding…"):
                         import time as _time
                         _time.sleep(1.0)
@@ -909,22 +899,19 @@ with tab_platform:
 
         # ── STEP 3: Refill confirmed ──────────────────────────────
         elif step == 3:
-            col_btn, col_result = st.columns([1, 2])
             new_pdc = min(1.0, jp_pdc + 0.18)
-            with col_btn:
-                st.markdown(f"""
-                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
-                            padding:1.25rem;">
-                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                color:#888; margin-bottom:0.5rem;">What happens</div>
-                    <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
-                        The patient picks up their prescription. The engine
-                        detects the fill event and updates their adherence score automatically.
-                    </div>
+            st.markdown(f"""
+            <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
+                        padding:1.25rem; margin-bottom:0.75rem;">
+                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                            color:#888; margin-bottom:0.5rem;">What happens</div>
+                <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
+                    The patient picks up their prescription. The engine
+                    detects the fill event and updates their adherence score automatically.
                 </div>
-                """, unsafe_allow_html=True)
-            with col_result:
-                if st.button("▶  Mark refill complete", key="journey_btn_3", use_container_width=True):
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("▶  Mark refill complete", key="journey_btn_3", use_container_width=True):
                     with st.spinner("Updating records…"):
                         _time.sleep(0.7)
                         st.session_state["journey_refill"] = {
