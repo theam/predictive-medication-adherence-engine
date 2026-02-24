@@ -186,6 +186,44 @@ st.markdown("""
     .step-content .step-desc {
         font-size: 0.8rem; color: #888; line-height: 1.5;
     }
+
+    /* ── Mobile responsive ── */
+    @media (max-width: 768px) {
+        .block-container { padding: 1rem 0.75rem 2rem 0.75rem !important; }
+
+        /* Metrics: 2 columns on mobile instead of 4 */
+        [data-testid="stHorizontalBlock"] > div {
+            min-width: 45% !important;
+            flex: 1 1 45% !important;
+        }
+
+        /* Buttons: full width */
+        .stButton > button { width: 100% !important; }
+
+        /* Stack header logo below title on small screens */
+        .tam-header { flex-direction: column !important; gap: 1rem !important; }
+        .tam-header .tam-logo-wrap { align-items: flex-start !important; }
+
+        /* Queue table: hide less critical columns, shrink padding */
+        .queue-table { overflow-x: auto !important; }
+        .queue-row-header, .queue-row {
+            grid-template-columns: 70px 1fr 55px 70px !important;
+        }
+        .queue-col-medication, .queue-col-channel { display: none !important; }
+
+        /* Journey timeline: scroll horizontally instead of wrapping */
+        .journey-timeline {
+            overflow-x: auto !important;
+            padding-bottom: 0.5rem !important;
+            -webkit-overflow-scrolling: touch !important;
+        }
+        .journey-timeline-inner {
+            min-width: 480px !important;
+        }
+
+        /* Narrative max-width: full width on mobile */
+        .narrative { max-width: 100% !important; }
+    }
 </style>
 """, unsafe_allow_html=True)
 
@@ -271,7 +309,7 @@ _logo_b64 = base64.b64encode(_logo_path.read_bytes()).decode()
 # ── Header ─────────────────────────────────────────────────────
 
 st.markdown(f"""
-<div style="display: flex; align-items: flex-start; justify-content: space-between;
+<div class="tam-header" style="display: flex; align-items: flex-start; justify-content: space-between;
             margin-bottom: 2rem;">
     <div>
         <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
@@ -287,7 +325,7 @@ st.markdown(f"""
             Simulated data showing how the engine identifies at-risk patients,
             triggers interventions, and measures financial return.</p>
     </div>
-    <div style="display: flex; flex-direction: column; align-items: flex-end;
+    <div class="tam-logo-wrap" style="display: flex; flex-direction: column; align-items: flex-end;
                 gap: 0.25rem; padding-top: 0.25rem;">
         <img src="data:image/svg+xml;base64,{_logo_b64}"
              style="height: 28px; opacity: 0.75;" alt="The Agile Monkeys" />
@@ -465,9 +503,10 @@ with tab_platform:
     ]
 
     queue_html = """
+    <div class="queue-table" style="overflow-x:auto; margin-bottom:2rem;">
     <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px;
-                overflow:hidden; margin-bottom:2rem;">
-      <div style="display:grid; grid-template-columns:80px 1fr 80px 90px 110px 90px;
+                overflow:hidden; min-width:520px;">
+      <div class="queue-row-header" style="display:grid; grid-template-columns:80px 1fr 80px 90px 110px 90px;
                   gap:0; padding:0.5rem 1.25rem;
                   border-bottom:1px solid #f0f0ec;
                   font-size:10px; text-transform:uppercase; letter-spacing:0.08em; color:#aaa;">
@@ -481,19 +520,19 @@ with tab_platform:
         reason = _reasons[i % len(_reasons)]
         channel = _channel_defaults[i % len(_channel_defaults)]
         queue_html += f"""
-      <div style="display:grid; grid-template-columns:80px 1fr 80px 90px 110px 90px;
+      <div class="queue-row" style="display:grid; grid-template-columns:80px 1fr 80px 90px 110px 90px;
                   gap:0; padding:0.65rem 1.25rem; background:{bg};
                   border-bottom:1px solid #f5f5f0; align-items:center;">
         <span style="font-size:12px; font-weight:600; color:{COLORS['ink']};">{row['id']}</span>
         <span style="font-size:12px; color:{COLORS['body']};">{reason}</span>
         <span style="font-size:12px; font-weight:600; color:{score_color};">{row['risk']:.0f}</span>
         <span style="font-size:12px; color:{COLORS['body']};">{int(row['days_gap'])}d</span>
-        <span style="font-size:12px; color:{COLORS['body']};">{row['medication']}</span>
-        <span style="font-size:10px; font-weight:600; text-transform:uppercase;
+        <span class="queue-col-medication" style="font-size:12px; color:{COLORS['body']};">{row['medication']}</span>
+        <span class="queue-col-channel" style="font-size:10px; font-weight:600; text-transform:uppercase;
                      letter-spacing:0.06em; background:#f0f0ec; color:{COLORS['body']};
                      padding:2px 8px; border-radius:3px;">{channel}</span>
       </div>"""
-    queue_html += "</div>"
+    queue_html += "</div></div>"
     st.markdown(queue_html, unsafe_allow_html=True)
 
     # ── SECTION 2: ONE PATIENT'S JOURNEY ─────────────────────────
@@ -554,7 +593,8 @@ with tab_platform:
         },
     ]
 
-    # ── Timeline — one column per step, no cross-column CSS ──────
+    # ── Timeline — scrollable on mobile ──────────────────────────
+    st.markdown("<div class='journey-timeline'><div class='journey-timeline-inner'>", unsafe_allow_html=True)
     _tcols = st.columns(len(_steps))
     for i, (tc, s) in enumerate(zip(_tcols, _steps)):
         if i < step:
@@ -581,7 +621,7 @@ with tab_platform:
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='margin-bottom:1.5rem;'></div>", unsafe_allow_html=True)
+    st.markdown("</div></div><div style='margin-bottom:1.5rem;'></div>", unsafe_allow_html=True)
 
     # ── Active step panel ─────────────────────────────────────────
     if step < len(_steps):
