@@ -606,14 +606,19 @@ with tab_platform:
             with col_result:
                 if st.button("▶  Run scoring", key="journey_btn_0", use_container_width=True):
                     with st.spinner("Scoring patient…"):
-                        try:
-                            r = _requests.post(f"{API}/predictions/risk", json={
-                                "patient_id": jp_id,
-                                "prediction_horizon_days": 30,
-                            }, timeout=10)
-                            st.session_state["journey_pred"] = r.json()
-                        except Exception as e:
-                            st.session_state["journey_pred"] = {"error": str(e)}
+                        import time as _time
+                        _time.sleep(0.8)
+                        # Simulated response — no API call in demo mode
+                        st.session_state["journey_pred"] = {
+                            "risk_score": 87,
+                            "risk_level": "high",
+                            "confidence_score": 0.91,
+                            "top_risk_factors": [
+                                {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
+                                {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61% — below 80% target"},
+                                {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
+                            ],
+                        }
 
                 pred = st.session_state.get("journey_pred")
                 if pred and "error" not in pred:
@@ -731,17 +736,16 @@ with tab_platform:
             with col_result:
                 if st.button("▶  Patient: \"It's too expensive\"", key="journey_btn_2", use_container_width=True):
                     with st.spinner("AI responding…"):
-                        try:
-                            r = _requests.post(f"{API}/chat", json={
-                                "patient_id": jp_id,
-                                "conversation_id": st.session_state.get("journey_conv"),
-                                "message": "My medication is too expensive, I can't afford it",
-                            }, timeout=15)
-                            chat_resp = r.json()
-                            st.session_state["journey_conv"] = chat_resp.get("conversation_id")
-                            st.session_state["journey_chat"] = chat_resp
-                        except Exception as e:
-                            st.session_state["journey_chat"] = {"response": f"[API error: {e}]", "identified_barrier": "cost"}
+                        import time as _time
+                        _time.sleep(1.0)
+                        # Simulated response — no API call in demo mode
+                        st.session_state["journey_conv"] = "demo-conv-001"
+                        st.session_state["journey_chat"] = {
+                            "conversation_id": "demo-conv-001",
+                            "response": "Hi there, I understand cost can be a concern. Good news — there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
+                            "identified_barrier": "cost",
+                            "suggested_action": "check_copay_assistance",
+                        }
 
                 cv = st.session_state.get("journey_chat")
                 if cv:
