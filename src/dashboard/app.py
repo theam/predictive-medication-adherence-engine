@@ -729,72 +729,67 @@ with tab_platform:
             </div>
             """, unsafe_allow_html=True)
             if st.button("▶  Run scoring", key="journey_btn_0", use_container_width=True):
-                    with st.spinner("Scoring patient…"):
-                        import time as _time
-                        _time.sleep(0.8)
-                        # Simulated response — no API call in demo mode
-                        st.session_state["journey_pred"] = {
-                            "risk_score": 87,
-                            "risk_level": "high",
-                            "confidence_score": 0.91,
-                            "top_risk_factors": [
-                                {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
-                                {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61% — below 80% target"},
-                                {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
-                            ],
-                        }
-
-                pred = st.session_state.get("journey_pred")
-                if pred and "error" not in pred:
-                    score = pred.get("risk_score", 0)
-                    level = pred.get("risk_level", "low")
-                    conf  = pred.get("confidence_score", 0)
-                    sc    = COLORS["high"] if level == "high" else COLORS["mid"] if level == "medium" else COLORS["low"]
-                    factors = pred.get("top_risk_factors", [])
-                    _fl = {
-                        "pdc_90_days": "Medication coverage — last 90 days",
-                        "pdc_180_days": "Medication coverage — last 6 months",
-                        "pdc_365_days": "Medication coverage — last year",
-                        "gap_count": "Number of refill gaps",
-                        "max_gap_days": "Longest gap without medication",
-                        "days_since_last_fill": "Days since last fill",
-                        "is_overdue": "Prescription overdue",
-                        "high_cost_medication_flag": "High-cost medication",
-                        "has_depression_diagnosis": "Depression diagnosis",
-                        "average_gap_days": "Avg days between refills",
-                        "refill_consistency_score": "Refill consistency",
+                with st.spinner("Scoring patient…"):
+                    import time as _time
+                    _time.sleep(0.8)
+                    st.session_state["journey_pred"] = {
+                        "risk_score": 87,
+                        "risk_level": "high",
+                        "confidence_score": 0.91,
+                        "top_risk_factors": [
+                            {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
+                            {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61% — below 80% target"},
+                            {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
+                        ],
                     }
 
-                    # Score header — separate markdown call
+            pred = st.session_state.get("journey_pred")
+            if pred and "error" not in pred:
+                score = pred.get("risk_score", 0)
+                level = pred.get("risk_level", "low")
+                conf  = pred.get("confidence_score", 0)
+                sc    = COLORS["high"] if level == "high" else COLORS["mid"] if level == "medium" else COLORS["low"]
+                factors = pred.get("top_risk_factors", [])
+                _fl = {
+                    "pdc_90_days": "Medication coverage — last 90 days",
+                    "pdc_180_days": "Medication coverage — last 6 months",
+                    "pdc_365_days": "Medication coverage — last year",
+                    "gap_count": "Number of refill gaps",
+                    "max_gap_days": "Longest gap without medication",
+                    "days_since_last_fill": "Days since last fill",
+                    "is_overdue": "Prescription overdue",
+                    "high_cost_medication_flag": "High-cost medication",
+                    "has_depression_diagnosis": "Depression diagnosis",
+                    "average_gap_days": "Avg days between refills",
+                    "refill_consistency_score": "Refill consistency",
+                }
+                st.markdown(
+                    f"<div style='background:#fff;border:1px solid #e8e8e4;border-radius:8px;padding:1.25rem;'>"
+                    f"<div style='display:flex;align-items:baseline;gap:0.75rem;margin-bottom:0.75rem;'>"
+                    f"<span style='font-size:2.8rem;font-weight:300;color:{sc};"
+                    f"letter-spacing:-0.03em;line-height:1;'>{score:.0f}</span>"
+                    f"<div><div style='font-size:12px;font-weight:700;text-transform:uppercase;"
+                    f"letter-spacing:0.08em;color:{sc};'>&#9679; {level} risk</div>"
+                    f"<div style='font-size:11px;color:#aaa;'>Confidence {conf:.0%} &middot; 30-day window</div>"
+                    f"</div></div>"
+                    f"<div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;"
+                    f"color:#aaa;margin-bottom:0.5rem;'>Why</div></div>",
+                    unsafe_allow_html=True,
+                )
+                for f in factors[:3]:
+                    raw = f.get("factor_name", "")
+                    _rd = f.get("description", "")
+                    d = _rd if _rd and not _rd.lower().startswith("risk factor:") else _fl.get(raw, raw.replace("_", " ").capitalize())
+                    bw = min(100, abs(f.get("impact_score", 0)) * 100)
                     st.markdown(
-                        f"<div style='background:#fff;border:1px solid #e8e8e4;border-radius:8px;padding:1.25rem;'>"
-                        f"<div style='display:flex;align-items:baseline;gap:0.75rem;margin-bottom:0.75rem;'>"
-                        f"<span style='font-size:2.8rem;font-weight:300;color:{sc};"
-                        f"letter-spacing:-0.03em;line-height:1;'>{score:.0f}</span>"
-                        f"<div><div style='font-size:12px;font-weight:700;text-transform:uppercase;"
-                        f"letter-spacing:0.08em;color:{sc};'>&#9679; {level} risk</div>"
-                        f"<div style='font-size:11px;color:#aaa;'>Confidence {conf:.0%} &middot; 30-day window</div>"
-                        f"</div></div>"
-                        f"<div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;"
-                        f"color:#aaa;margin-bottom:0.5rem;'>Why</div></div>",
+                        f"<div style='margin-bottom:0.4rem;padding:0 1.25rem;'>"
+                        f"<div style='font-size:11px;color:{COLORS['body']};margin-bottom:2px;'>{d}</div>"
+                        f"<div style='height:3px;background:#f0f0ec;border-radius:2px;'>"
+                        f"<div style='width:{bw:.0f}%;height:3px;background:{sc};border-radius:2px;'></div>"
+                        f"</div></div>",
                         unsafe_allow_html=True,
                     )
-                    # Factor bars — one st.markdown per factor
-                    for f in factors[:3]:
-                        raw = f.get("factor_name", "")
-                        _rd = f.get("description", "")
-                        d = _rd if _rd and not _rd.lower().startswith("risk factor:") else _fl.get(raw, raw.replace("_", " ").capitalize())
-                        bw = min(100, abs(f.get("impact_score", 0)) * 100)
-                        st.markdown(
-                            f"<div style='margin-bottom:0.4rem;padding:0 1.25rem;'>"
-                            f"<div style='font-size:11px;color:{COLORS['body']};margin-bottom:2px;'>{d}</div>"
-                            f"<div style='height:3px;background:#f0f0ec;border-radius:2px;'>"
-                            f"<div style='width:{bw:.0f}%;height:3px;background:{sc};border-radius:2px;'></div>"
-                            f"</div></div>",
-                            unsafe_allow_html=True,
-                        )
-
-                    st.button("Next →", key="journey_next_0", on_click=lambda: st.session_state.update({_step_key: 1}))
+                st.button("Next →", key="journey_next_0", on_click=lambda: st.session_state.update({_step_key: 1}))
 
         # ── STEP 1: Outreach triggered ────────────────────────────
         elif step == 1:
@@ -811,33 +806,33 @@ with tab_platform:
             </div>
             """, unsafe_allow_html=True)
             if st.button("▶  Send outreach", key="journey_btn_1", use_container_width=True):
-                    with st.spinner("Sending…"):
-                        _time.sleep(0.6)
-                        st.session_state["journey_outreach"] = {
-                            "status": "sent",
-                            "id": str(_uuid.uuid4()),
-                            "msg": _sms_msg,
-                            "channel": "SMS",
-                        }
+                with st.spinner("Sending…"):
+                    _time.sleep(0.6)
+                    st.session_state["journey_outreach"] = {
+                        "status": "sent",
+                        "id": str(_uuid.uuid4()),
+                        "msg": _sms_msg,
+                        "channel": "SMS",
+                    }
 
-                ov = st.session_state.get("journey_outreach")
-                if ov:
-                    st.markdown(f"""
-                    <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:1.25rem;">
-                        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                    color:#888; margin-bottom:0.4rem;">SMS to {jp_id} · {jp_age}y · {jp_cond}</div>
-                        <div style="background:#f5f5f0; border-radius:6px; padding:0.75rem 1rem;
-                                    font-size:13px; color:{COLORS['ink']}; line-height:1.6;
-                                    margin-bottom:0.75rem;">
-                            "{ov['msg']}"
-                        </div>
-                        <div style="font-size:11px; color:{COLORS['low']}; font-weight:600;">
-                            &#10003; Sent automatically &nbsp;·&nbsp;
-                            <span style="color:#aaa; font-weight:400;">ID: {ov['id'][:8]}…</span>
-                        </div>
+            ov = st.session_state.get("journey_outreach")
+            if ov:
+                st.markdown(f"""
+                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:1.25rem;">
+                    <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                                color:#888; margin-bottom:0.4rem;">SMS to {jp_id} · {jp_age}y · {jp_cond}</div>
+                    <div style="background:#f5f5f0; border-radius:6px; padding:0.75rem 1rem;
+                                font-size:13px; color:{COLORS['ink']}; line-height:1.6;
+                                margin-bottom:0.75rem;">
+                        "{ov['msg']}"
                     </div>
-                    """, unsafe_allow_html=True)
-                    st.button("Next →", key="journey_next_1", on_click=lambda: st.session_state.update({_step_key: 2}))
+                    <div style="font-size:11px; color:{COLORS['low']}; font-weight:600;">
+                        &#10003; Sent automatically &nbsp;·&nbsp;
+                        <span style="color:#aaa; font-weight:400;">ID: {ov['id'][:8]}…</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.button("Next →", key="journey_next_1", on_click=lambda: st.session_state.update({_step_key: 2}))
 
         # ── STEP 2: Patient replies ───────────────────────────────
         elif step == 2:
@@ -853,49 +848,48 @@ with tab_platform:
             </div>
             """, unsafe_allow_html=True)
             if st.button("▶  Patient: \"It's too expensive\"", key="journey_btn_2", use_container_width=True):
-                    with st.spinner("AI responding…"):
-                        import time as _time
-                        _time.sleep(1.0)
-                        # Simulated response — no API call in demo mode
-                        st.session_state["journey_conv"] = "demo-conv-001"
-                        st.session_state["journey_chat"] = {
-                            "conversation_id": "demo-conv-001",
-                            "response": "Hi there, I understand cost can be a concern. Good news — there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
-                            "identified_barrier": "cost",
-                            "suggested_action": "check_copay_assistance",
-                        }
+                with st.spinner("AI responding…"):
+                    import time as _time
+                    _time.sleep(1.0)
+                    st.session_state["journey_conv"] = "demo-conv-001"
+                    st.session_state["journey_chat"] = {
+                        "conversation_id": "demo-conv-001",
+                        "response": "Hi there, I understand cost can be a concern. Good news — there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
+                        "identified_barrier": "cost",
+                        "suggested_action": "check_copay_assistance",
+                    }
 
-                cv = st.session_state.get("journey_chat")
-                if cv:
-                    barrier = cv.get("identified_barrier", "cost")
-                    action  = cv.get("suggested_action", "check_copay_assistance")
-                    response = cv.get("response", "")
-                    st.markdown(f"""
-                    <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:1.25rem;">
-                        <div style="background:#f5f5f0; border-radius:8px 8px 2px 8px;
-                                    padding:0.65rem 0.9rem; font-size:13px; color:{COLORS['body']};
-                                    max-width:85%; margin-left:auto; margin-bottom:0.5rem;">
-                            "It's too expensive, I can't afford it"
-                        </div>
-                        <div style="background:#fff; border:1px solid #e8e8e4;
-                                    border-radius:8px 2px 8px 8px;
-                                    padding:0.65rem 0.9rem; font-size:13px; color:{COLORS['ink']};
-                                    max-width:85%; margin-bottom:0.5rem; line-height:1.6;">
-                            {response}
-                        </div>
-                        <div style="margin-top:0.5rem;">
-                            <span style="font-size:10px; font-weight:600; text-transform:uppercase;
-                                letter-spacing:0.06em; background:{COLORS['mid']}22; color:{COLORS['mid']};
-                                padding:2px 8px; border-radius:3px; margin-right:4px;">
-                                {barrier.replace('_',' ')}</span>
-                            <span style="font-size:10px; font-weight:600; text-transform:uppercase;
-                                letter-spacing:0.06em; background:{COLORS['low']}22; color:{COLORS['low']};
-                                padding:2px 8px; border-radius:3px;">
-                                &#8594; {action.replace('_',' ')}</span>
-                        </div>
+            cv = st.session_state.get("journey_chat")
+            if cv:
+                barrier = cv.get("identified_barrier", "cost")
+                action  = cv.get("suggested_action", "check_copay_assistance")
+                response = cv.get("response", "")
+                st.markdown(f"""
+                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:1.25rem;">
+                    <div style="background:#f5f5f0; border-radius:8px 8px 2px 8px;
+                                padding:0.65rem 0.9rem; font-size:13px; color:{COLORS['body']};
+                                max-width:85%; margin-left:auto; margin-bottom:0.5rem;">
+                        "It's too expensive, I can't afford it"
                     </div>
-                    """, unsafe_allow_html=True)
-                    st.button("Next →", key="journey_next_2", on_click=lambda: st.session_state.update({_step_key: 3}))
+                    <div style="background:#fff; border:1px solid #e8e8e4;
+                                border-radius:8px 2px 8px 8px;
+                                padding:0.65rem 0.9rem; font-size:13px; color:{COLORS['ink']};
+                                max-width:85%; margin-bottom:0.5rem; line-height:1.6;">
+                        {response}
+                    </div>
+                    <div style="margin-top:0.5rem;">
+                        <span style="font-size:10px; font-weight:600; text-transform:uppercase;
+                            letter-spacing:0.06em; background:{COLORS['mid']}22; color:{COLORS['mid']};
+                            padding:2px 8px; border-radius:3px; margin-right:4px;">
+                            {barrier.replace('_',' ')}</span>
+                        <span style="font-size:10px; font-weight:600; text-transform:uppercase;
+                            letter-spacing:0.06em; background:{COLORS['low']}22; color:{COLORS['low']};
+                            padding:2px 8px; border-radius:3px;">
+                            &#8594; {action.replace('_',' ')}</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.button("Next →", key="journey_next_2", on_click=lambda: st.session_state.update({_step_key: 3}))
 
         # ── STEP 3: Refill confirmed ──────────────────────────────
         elif step == 3:
@@ -912,42 +906,42 @@ with tab_platform:
             </div>
             """, unsafe_allow_html=True)
             if st.button("▶  Mark refill complete", key="journey_btn_3", use_container_width=True):
-                    with st.spinner("Updating records…"):
-                        _time.sleep(0.7)
-                        st.session_state["journey_refill"] = {
-                            "pdc_before": jp_pdc,
-                            "pdc_after": new_pdc,
-                            "gap_closed": jp_gap,
-                        }
+                with st.spinner("Updating records…"):
+                    _time.sleep(0.7)
+                    st.session_state["journey_refill"] = {
+                        "pdc_before": jp_pdc,
+                        "pdc_after": new_pdc,
+                        "gap_closed": jp_gap,
+                    }
 
-                rf = st.session_state.get("journey_refill")
-                if rf:
-                    st.markdown(f"""
-                    <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:1.25rem;">
-                        <div style="display:flex; gap:2rem; align-items:center; margin-bottom:1rem;">
-                            <div>
-                                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                            color:#aaa; margin-bottom:2px;">PDC before</div>
-                                <div style="font-size:2rem; font-weight:300; color:{COLORS['high']};">
-                                    {rf['pdc_before']:.0%}</div>
-                            </div>
-                            <div style="font-size:1.5rem; color:#aaa;">→</div>
-                            <div>
-                                <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                                            color:#aaa; margin-bottom:2px;">PDC after</div>
-                                <div style="font-size:2rem; font-weight:300; color:{COLORS['low']};">
-                                    {rf['pdc_after']:.0%}</div>
-                            </div>
+            rf = st.session_state.get("journey_refill")
+            if rf:
+                st.markdown(f"""
+                <div style="background:#fff; border:1px solid #e8e8e4; border-radius:8px; padding:1.25rem;">
+                    <div style="display:flex; gap:2rem; align-items:center; margin-bottom:1rem;">
+                        <div>
+                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                                        color:#aaa; margin-bottom:2px;">PDC before</div>
+                            <div style="font-size:2rem; font-weight:300; color:{COLORS['high']};">
+                                {rf['pdc_before']:.0%}</div>
                         </div>
-                        <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
-                            {rf['gap_closed']}-day gap closed &nbsp;·&nbsp;
-                            Adherence target restored &nbsp;·&nbsp;
-                            <span style="color:{COLORS['low']}; font-weight:600;">
-                            Patient back on track</span>
+                        <div style="font-size:1.5rem; color:#aaa;">→</div>
+                        <div>
+                            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
+                                        color:#aaa; margin-bottom:2px;">PDC after</div>
+                            <div style="font-size:2rem; font-weight:300; color:{COLORS['low']};">
+                                {rf['pdc_after']:.0%}</div>
                         </div>
                     </div>
-                    """, unsafe_allow_html=True)
-                    st.button("Next →", key="journey_next_3", on_click=lambda: st.session_state.update({_step_key: 4}))
+                    <div style="font-size:13px; color:{COLORS['body']}; line-height:1.6;">
+                        {rf['gap_closed']}-day gap closed &nbsp;·&nbsp;
+                        Adherence target restored &nbsp;·&nbsp;
+                        <span style="color:{COLORS['low']}; font-weight:600;">
+                        Patient back on track</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                st.button("Next →", key="journey_next_3", on_click=lambda: st.session_state.update({_step_key: 4}))
 
         # ── STEP 4: Hospitalization avoided ──────────────────────
         elif step == 4:
