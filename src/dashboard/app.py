@@ -264,6 +264,10 @@ st.markdown("""
     }
 
     /* ── Mobile responsive ── */
+    /* Logo visibility */
+    .tam-logo-mobile { display: none !important; }
+    .tam-logo-desktop { display: flex !important; }
+
     @media (max-width: 768px) {
         .block-container { padding: 1rem 0.75rem 2rem 0.75rem !important; }
 
@@ -276,9 +280,9 @@ st.markdown("""
         /* Buttons: full width */
         .stButton > button { width: 100% !important; }
 
-        /* Stack header logo below title on small screens */
-        .tam-header { flex-direction: column !important; gap: 1rem !important; }
-        .tam-header .tam-logo-wrap { align-items: flex-start !important; }
+        /* On mobile: show logo above title, hide desktop top-right logo */
+        .tam-logo-mobile { display: block !important; }
+        .tam-logo-desktop { display: none !important; }
 
         /* Queue table: hide less critical columns, shrink padding */
         .queue-table { overflow-x: auto !important; }
@@ -380,27 +384,32 @@ total_cost = roi["cost"].sum()
 # ── Header ─────────────────────────────────────────────────────
 
 st.markdown(f"""
-<div class="tam-header" style="display: flex; align-items: flex-start; justify-content: space-between;
-            margin-bottom: 2rem;">
+<div class="tam-header" style="display:flex; align-items:flex-start;
+            justify-content:space-between; margin-bottom:2rem; gap:1rem;">
     <div>
-        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-            <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em;
-                      color: #888; margin: 0; font-weight: 500;">
+        <!-- Logo visible only on mobile, above title -->
+        <img class="tam-logo-mobile" src="data:image/svg+xml;base64,{_logo_b64}"
+             style="display:none; height:22px; opacity:0.7; margin-bottom:1rem;"
+             alt="The Agile Monkeys"/>
+        <div style="display:flex; align-items:center; gap:0.75rem; margin-bottom:0.5rem;">
+            <p style="font-size:12px; text-transform:uppercase; letter-spacing:0.12em;
+                      color:#888; margin:0; font-weight:500;">
                 Predictive Medication Adherence Engine</p>
-            <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
-                         background: #1a1a1a; color: #fafaf7; padding: 3px 10px; border-radius: 3px;
-                         font-weight: 600;">Demo</span>
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.08em;
+                         background:#1a1a1a; color:#fafaf7; padding:3px 10px; border-radius:3px;
+                         font-weight:600;">Demo</span>
         </div>
-        <h1 style="margin: 0 !important; padding: 0 !important;">Adherence</h1>
-        <p style="font-size: 14px; color: #888; margin-top: 0.25rem; max-width: 600px; line-height: 1.6;">
+        <h1 style="margin:0 !important; padding:0 !important;">Adherence</h1>
+        <p style="font-size:14px; color:#888; margin-top:0.25rem; max-width:600px; line-height:1.6;">
             Simulated data showing how the engine identifies at-risk patients,
             triggers interventions, and measures financial return.</p>
     </div>
-    <div class="tam-logo-wrap" style="display: flex; flex-direction: column; align-items: flex-end;
-                gap: 0.25rem; padding-top: 0.25rem;">
+    <!-- Logo visible only on desktop, top-right -->
+    <div class="tam-logo-desktop" style="display:flex; flex-direction:column;
+                align-items:flex-end; gap:0.25rem; padding-top:0.25rem; flex-shrink:0;">
         <img src="data:image/svg+xml;base64,{_logo_b64}"
-             style="height: 28px; opacity: 0.75;" alt="The Agile Monkeys" />
-        <span style="font-size: 10px; color: #aaa; letter-spacing: 0.06em;">
+             style="height:28px; opacity:0.75;" alt="The Agile Monkeys"/>
+        <span style="font-size:10px; color:#aaa; letter-spacing:0.06em;">
             theagilemonkeys.com</span>
     </div>
 </div>
@@ -664,35 +673,39 @@ with tab_platform:
         },
     ]
 
-    # ── Timeline — scrollable on mobile ──────────────────────────
-    st.markdown("<div class='journey-timeline'><div class='journey-timeline-inner'>", unsafe_allow_html=True)
-    _tcols = st.columns(len(_steps))
-    for i, (tc, s) in enumerate(zip(_tcols, _steps)):
+    # ── Timeline — pure HTML, scrollable on mobile ───────────────
+    _timeline_html = """
+    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:1.5rem;">
+      <div style="display:flex; align-items:flex-start; min-width:480px; gap:0;">
+    """
+    for i, s in enumerate(_steps):
         if i < step:
-            dot_bg = COLORS["low"]
-            lc     = COLORS["low"]
+            dot_bg = COLORS["low"]; lc = COLORS["low"]
         elif i == step:
-            dot_bg = COLORS["ink"]
-            lc     = COLORS["ink"]
+            dot_bg = COLORS["ink"]; lc = COLORS["ink"]
         else:
-            dot_bg = "#e0e0da"
-            lc     = "#aaa"
+            dot_bg = "#e0e0da"; lc = "#aaa"
 
-        # Step number badge + label — no absolute positioning, no emoji in HTML
-        tc.markdown(
-            f"<div style='text-align:center;'>"
-            f"<div style='width:22px;height:22px;border-radius:50%;"
-            f"background:{dot_bg};color:#fff;font-size:11px;font-weight:700;"
-            f"display:flex;align-items:center;justify-content:center;"
-            f"margin:0 auto 6px;line-height:1;'>{i+1}</div>"
-            f"<div style='font-size:10px;font-weight:600;color:{lc};"
-            f"line-height:1.3;'>{s['label']}</div>"
-            f"<div style='font-size:10px;color:#aaa;margin-top:2px;'>{s['sublabel']}</div>"
-            f"</div>",
-            unsafe_allow_html=True,
-        )
+        # Connector line between steps
+        connector = "" if i == 0 else f"""
+            <div style="flex:1; height:1px; background:#e8e8e4;
+                        margin-top:11px; min-width:12px;"></div>"""
 
-    st.markdown("</div></div><div style='margin-bottom:1.5rem;'></div>", unsafe_allow_html=True)
+        _timeline_html += f"""
+        {connector}
+        <div style="display:flex; flex-direction:column; align-items:center;
+                    text-align:center; min-width:80px; max-width:100px;">
+            <div style="width:22px; height:22px; border-radius:50%;
+                        background:{dot_bg}; color:#fff; font-size:11px; font-weight:700;
+                        display:flex; align-items:center; justify-content:center;
+                        margin-bottom:6px; flex-shrink:0;">{i+1}</div>
+            <div style="font-size:10px; font-weight:600; color:{lc};
+                        line-height:1.3; margin-bottom:2px;">{s['label']}</div>
+            <div style="font-size:10px; color:#aaa;">{s['sublabel']}</div>
+        </div>"""
+
+    _timeline_html += "</div></div>"
+    st.markdown(_timeline_html, unsafe_allow_html=True)
 
     # ── Active step panel ─────────────────────────────────────────
     if step < len(_steps):
