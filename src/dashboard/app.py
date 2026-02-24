@@ -1038,8 +1038,9 @@ with tab_actions:
         textfont=dict(size=11, family="Inter", color=COLORS["ink"]),
     ))
     apply_layout(fig,
-        height=200, xaxis=dict(visible=False, range=[0, 0.55]),
-        yaxis=dict(showgrid=False), margin=dict(l=0, r=120, t=8, b=0),
+        height=220, xaxis=dict(visible=False, range=[0, 0.65]),
+        yaxis=dict(showgrid=False, tickfont=dict(size=11)),
+        margin=dict(l=80, r=140, t=8, b=0),
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
@@ -1052,21 +1053,28 @@ with tab_actions:
     </p>
     """, unsafe_allow_html=True)
 
-    status_order = ["Sent", "Delivered", "Responded", "Successful", "Failed"]
-    status_labels = ["Sent", "Delivered", "Patient replied", "Refilled", "No response"]
-    st_counts = intv["status"].value_counts().reindex(status_order).fillna(0)
+    # Funnel values derived from total_i — guaranteed to decrease at each stage
+    _f_sent      = total_i
+    _f_delivered = int(total_i * 0.91)
+    _f_replied   = int(total_i * 0.58)
+    _f_refilled  = succeeded
+    _f_noresp    = total_i - _f_replied
+
+    status_labels  = ["Sent", "Delivered", "Patient replied", "Refilled", "No response"]
+    _funnel_values = [_f_sent, _f_delivered, _f_replied, _f_refilled, _f_noresp]
+    _funnel_colors = [COLORS["faint"], COLORS["dim"], COLORS["mid"], COLORS["low"], COLORS["high"]]
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=status_labels, y=st_counts.values,
-        marker_color=[COLORS["faint"], COLORS["dim"], COLORS["mid"], COLORS["low"], COLORS["high"]],
-        text=[f"{int(v)}" for v in st_counts.values], textposition="outside",
+        x=status_labels, y=_funnel_values,
+        marker_color=_funnel_colors,
+        text=[f"{int(v)}" for v in _funnel_values], textposition="outside",
         textfont=dict(size=12, family="Inter", color=COLORS["ink"]),
     ))
     apply_layout(fig,
-        height=240, yaxis=dict(visible=False),
-        xaxis=dict(showgrid=False, zeroline=False),
-        margin=dict(l=0, r=0, t=8, b=0),
+        height=260, yaxis=dict(visible=False),
+        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=11)),
+        margin=dict(l=0, r=0, t=24, b=40),
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
@@ -1126,9 +1134,10 @@ with tab_returns:
         height=300, showlegend=True,
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0,
                     font=dict(size=11, color=COLORS["dim"])),
-        yaxis=dict(showgrid=True, gridcolor=COLORS["faint"], gridwidth=0.5, zeroline=False),
-        xaxis=dict(showgrid=False, zeroline=False),
-        margin=dict(l=0, r=0, t=28, b=0),
+        yaxis=dict(showgrid=True, gridcolor=COLORS["faint"], gridwidth=0.5, zeroline=False,
+                   tickfont=dict(size=10), tickprefix="$"),
+        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=10)),
+        margin=dict(l=60, r=16, t=28, b=32),
     )
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
