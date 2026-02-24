@@ -291,15 +291,6 @@ st.markdown("""
         }
         .queue-col-medication, .queue-col-channel { display: none !important; }
 
-        /* Journey timeline: scroll horizontally instead of wrapping */
-        .journey-timeline {
-            overflow-x: auto !important;
-            padding-bottom: 0.5rem !important;
-            -webkit-overflow-scrolling: touch !important;
-        }
-        .journey-timeline-inner {
-            min-width: 480px !important;
-        }
 
         /* Narrative max-width: full width on mobile */
         .narrative { max-width: 100% !important; }
@@ -673,11 +664,8 @@ with tab_platform:
         },
     ]
 
-    # ── Timeline — pure HTML, scrollable on mobile ───────────────
-    _timeline_html = """
-    <div style="overflow-x:auto; -webkit-overflow-scrolling:touch; margin-bottom:1.5rem;">
-      <div style="display:flex; align-items:flex-start; min-width:480px; gap:0;">
-    """
+    # ── Timeline — columns on desktop, stacked rows on mobile ─────
+    _tl_items = ""
     for i, s in enumerate(_steps):
         if i < step:
             dot_bg = COLORS["low"]; lc = COLORS["low"]
@@ -686,26 +674,42 @@ with tab_platform:
         else:
             dot_bg = "#e0e0da"; lc = "#aaa"
 
-        # Connector line between steps
-        connector = "" if i == 0 else f"""
-            <div style="flex:1; height:1px; background:#e8e8e4;
-                        margin-top:11px; min-width:12px;"></div>"""
+        _tl_items += (
+            f"<div class='tl-step'>"
+            f"<div class='tl-dot' style='background:{dot_bg};'>{i+1}</div>"
+            f"<div class='tl-text'>"
+            f"<div style='font-size:10px;font-weight:600;color:{lc};line-height:1.3;'>{s['label']}</div>"
+            f"<div style='font-size:10px;color:#aaa;margin-top:2px;'>{s['sublabel']}</div>"
+            f"</div></div>"
+        )
 
-        _timeline_html += f"""
-        {connector}
-        <div style="display:flex; flex-direction:column; align-items:center;
-                    text-align:center; min-width:80px; max-width:100px;">
-            <div style="width:22px; height:22px; border-radius:50%;
-                        background:{dot_bg}; color:#fff; font-size:11px; font-weight:700;
-                        display:flex; align-items:center; justify-content:center;
-                        margin-bottom:6px; flex-shrink:0;">{i+1}</div>
-            <div style="font-size:10px; font-weight:600; color:{lc};
-                        line-height:1.3; margin-bottom:2px;">{s['label']}</div>
-            <div style="font-size:10px; color:#aaa;">{s['sublabel']}</div>
-        </div>"""
-
-    _timeline_html += "</div></div>"
-    st.markdown(_timeline_html, unsafe_allow_html=True)
+    st.markdown(f"""
+    <style>
+        .tl-wrap {{
+            display: flex; flex-direction: row; gap: 0;
+            margin-bottom: 1.5rem; align-items: flex-start;
+        }}
+        .tl-step {{
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; text-align: center;
+        }}
+        .tl-dot {{
+            width: 22px; height: 22px; border-radius: 50%;
+            color: #fff; font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 6px; line-height: 1; flex-shrink: 0;
+        }}
+        .tl-text {{ padding: 0 4px; }}
+        @media (max-width: 768px) {{
+            .tl-wrap {{ flex-direction: column; gap: 0.6rem; }}
+            .tl-step {{ flex-direction: row; align-items: center;
+                        text-align: left; flex: none; width: 100%; }}
+            .tl-dot {{ margin: 0 0.75rem 0 0; flex-shrink: 0; }}
+            .tl-text {{ padding: 0; }}
+        }}
+    </style>
+    <div class='tl-wrap'>{_tl_items}</div>
+    """, unsafe_allow_html=True)
 
     # ── Active step panel ─────────────────────────────────────────
     if step < len(_steps):
