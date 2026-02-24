@@ -8,6 +8,7 @@ The story: Non-adherence costs $528B/year. We predict who will stop taking
 their medication, intervene before they do, and measure the financial return.
 Every $1 invested yields $4 in avoided hospitalizations.
 """
+import base64
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -262,22 +263,37 @@ total_savings = roi["savings"].sum()
 total_cost = roi["cost"].sum()
 
 
+# ── Logo ───────────────────────────────────────────────────────
+
+_logo_path = Path(__file__).parent / "logo-tam.svg"
+_logo_b64 = base64.b64encode(_logo_path.read_bytes()).decode()
+
 # ── Header ─────────────────────────────────────────────────────
 
-st.markdown("""
-<div style="margin-bottom: 2rem;">
-    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-        <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em;
-                  color: #888; margin: 0; font-weight: 500;">
-            Predictive Medication Adherence Engine</p>
-        <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
-                     background: #1a1a1a; color: #fafaf7; padding: 3px 10px; border-radius: 3px;
-                     font-weight: 600;">Demo</span>
+st.markdown(f"""
+<div style="display: flex; align-items: flex-start; justify-content: space-between;
+            margin-bottom: 2rem;">
+    <div>
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <p style="font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em;
+                      color: #888; margin: 0; font-weight: 500;">
+                Predictive Medication Adherence Engine</p>
+            <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em;
+                         background: #1a1a1a; color: #fafaf7; padding: 3px 10px; border-radius: 3px;
+                         font-weight: 600;">Demo</span>
+        </div>
+        <h1 style="margin: 0 !important; padding: 0 !important;">Adherence</h1>
+        <p style="font-size: 14px; color: #888; margin-top: 0.25rem; max-width: 600px; line-height: 1.6;">
+            Simulated data showing how the engine identifies at-risk patients,
+            triggers interventions, and measures financial return.</p>
     </div>
-    <h1 style="margin: 0 !important; padding: 0 !important;">Adherence</h1>
-    <p style="font-size: 14px; color: #888; margin-top: 0.25rem; max-width: 600px; line-height: 1.6;">
-        Simulated data showing how the engine identifies at-risk patients,
-        triggers interventions, and measures financial return.</p>
+    <div style="display: flex; flex-direction: column; align-items: flex-end;
+                gap: 0.25rem; padding-top: 0.25rem;">
+        <img src="data:image/svg+xml;base64,{_logo_b64}"
+             style="height: 28px; opacity: 0.75;" alt="The Agile Monkeys" />
+        <span style="font-size: 10px; color: #aaa; letter-spacing: 0.06em;">
+            theagilemonkeys.com</span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
