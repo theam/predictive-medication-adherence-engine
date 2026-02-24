@@ -1,0 +1,32 @@
+{
+  "generated_at": "2026-01-30T12:02:24.326472",
+  "patients": {
+    "total": 500,
+    "high_risk": 43,
+    "medium_risk": 457,
+    "low_risk": 0,
+    "avg_age": 57.5,
+    "avg_pdc_90": 0.944
+  },
+  "fills": {
+    "total": 7563,
+    "avg_per_patient": 15.1
+  },
+  "interventions": {
+    "total": 1000,
+    "by_channel": {
+      "sms": 233,
+      "email": 215,
+      "voice": 220,
+      "push_notification": 102,
+      "care_manager": 230
+    },
+    "by_status": {
+      "sent": 107,
+      "delivered": 247,
+      "responded": 249,
+      "successful": 285,
+      "failed": 112
+    }
+  }
+}

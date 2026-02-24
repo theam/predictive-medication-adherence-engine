@@ -1,0 +1,26 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Bash(find:*)",
+      "Bash(python3:*)",
+      "Bash(source venv/bin/activate)",
+      "Bash(pip install:*)",
+      "Bash(ls:*)",
+      "Bash(uvicorn:*)",
+      "Bash(curl:*)",
+      "Bash(pkill:*)",
+      "Bash(streamlit run:*)",
+      "Bash(lsof:*)",
+      "Bash(xargs:*)",
+      "Bash(source:*)",
+      "Bash(gh auth status:*)",
+      "Bash(git --version:*)",
+      "Bash(git config:*)",
+      "Bash(git init:*)",
+      "Bash(git remote add:*)",
+      "Bash(/Users/nayara/Downloads/predictive-medication-adherence-engine/.gitignore:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}
