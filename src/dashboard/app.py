@@ -633,6 +633,10 @@ with tab_platform:
     # ── Accordion CSS ─────────────────────────────────────────────
     st.markdown(f"""
     <style>
+    .ac-wrap {{
+        max-width: 560px;
+        margin: 0 auto;
+    }}
     .ac-item {{
         border: 1px solid #e8e8e4;
         border-radius: 10px;
@@ -671,6 +675,8 @@ with tab_platform:
     }}
     </style>
     """, unsafe_allow_html=True)
+
+    st.markdown("<div class='ac-wrap'>", unsafe_allow_html=True)
 
     # ─── Helper: render an accordion header ──────────────────────
     def _ac_header(idx, label, sublabel, state):
@@ -888,7 +894,7 @@ with tab_platform:
         </div>
         </div>
         """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)  # close last ac-item
 
     # ── Start over ────────────────────────────────────────────────
     st.markdown("<div style='margin-top:1rem;'></div>", unsafe_allow_html=True)
@@ -898,6 +904,8 @@ with tab_platform:
                       "journey_conv", "journey_refill", _step_key]:
                 st.session_state.pop(k, None)
             st.rerun()
+
+    st.markdown("</div>", unsafe_allow_html=True)  # close ac-wrap
 
 
 # ═══════════════════════════════════════════════════════════════
