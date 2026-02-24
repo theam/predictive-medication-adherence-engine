@@ -66,6 +66,29 @@ st.set_page_config(
     initial_sidebar_state="collapsed",
 )
 
+# ── Password gate ───────────────────────────────────────────────
+
+_PASSWORD = st.secrets.get("APP_PASSWORD", "monkeys")
+
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
+
+if not st.session_state["authenticated"]:
+    st.markdown("""
+    <style>
+        .block-container { max-width: 380px !important; padding-top: 8rem !important; }
+    </style>
+    """, unsafe_allow_html=True)
+    st.markdown("### Predictive Medication Adherence Engine")
+    pwd = st.text_input("Password", type="password", placeholder="Enter password to continue")
+    if st.button("Enter", use_container_width=True):
+        if pwd == _PASSWORD:
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("Incorrect password.")
+    st.stop()
+
 # ── Styles ─────────────────────────────────────────────────────
 
 st.markdown("""
