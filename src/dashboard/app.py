@@ -1128,51 +1128,85 @@ with tab_returns:
         Use this calculator to model what the engine would return at your scale.
         Change any input — the projection updates instantly.
     </p>
+    <style>
+        /* Force light theme on all inputs inside the ROI calculator */
+        .roi-calc label, .roi-calc .stSlider label,
+        .roi-calc [data-testid="stNumberInput"] label,
+        .roi-calc [data-testid="stSlider"] label {{
+            color: {COLORS['ink']} !important;
+            font-size: 13px !important;
+            font-weight: 500 !important;
+            font-family: 'Inter', sans-serif !important;
+        }}
+        .roi-calc [data-testid="stNumberInput"] input {{
+            background: #fff !important;
+            color: {COLORS['ink']} !important;
+            border: 1px solid #e8e8e4 !important;
+            border-radius: 6px !important;
+        }}
+        .roi-calc [data-testid="stNumberInput"] input:focus {{
+            border-color: {COLORS['ink']} !important;
+            box-shadow: none !important;
+        }}
+        /* Slider track & thumb */
+        .roi-calc [data-testid="stSlider"] [data-baseweb="slider"] div[role="slider"] {{
+            background: {COLORS['ink']} !important;
+        }}
+        .roi-calc [data-testid="stSlider"] [data-baseweb="slider"] div {{
+            color: {COLORS['ink']} !important;
+        }}
+        .roi-calc .stSlider p {{
+            color: {COLORS['body']} !important;
+        }}
+        /* Hint text */
+        .roi-hint {{
+            font-size: 11px; color: #aaa; margin: -0.4rem 0 1rem;
+            font-family: 'Inter', sans-serif; line-height: 1.5;
+        }}
+    </style>
     """, unsafe_allow_html=True)
 
     _roi_pad, _roi_col, _roi_pad2 = st.columns([1, 4, 1])
     with _roi_col:
 
-        # ── Section label ────────────────────────────────────────
         st.markdown(f"""
         <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em;
-                    color:#aaa; font-weight:600; margin-bottom:1.25rem;">
+                    color:#aaa; font-weight:600; margin-bottom:1rem;">
             Model your own scenario
         </div>
         """, unsafe_allow_html=True)
 
-        # ── Input card ───────────────────────────────────────────
-        st.markdown(f"""
-        <div style="background:#fff; border:1px solid #e8e8e4; border-radius:10px;
-                    padding:1.25rem 1.25rem 0.25rem; margin-bottom:0.75rem;">
-            <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.08em;
-                        color:#aaa; margin-bottom:1rem; font-weight:600;">Your programme</div>
-        </div>
-        """, unsafe_allow_html=True)
+        # ── Input card with 2-column grid ────────────────────────
+        st.markdown("""<div class="roi-calc">""", unsafe_allow_html=True)
 
-        patients_n = st.number_input(
-            "How many patients are enrolled in the programme?",
-            min_value=100, max_value=100_000, value=5000, step=500,
-        )
-        st.markdown("<div style='font-size:11px;color:#aaa;margin:-0.5rem 0 0.75rem;'>Total patients the engine will monitor and score each night.</div>", unsafe_allow_html=True)
+        _ri1, _ri2 = st.columns(2)
+        with _ri1:
+            patients_n = st.number_input(
+                "Patients in the programme",
+                min_value=100, max_value=100_000, value=5000, step=500,
+            )
+            st.markdown("<div class='roi-hint'>Total patients monitored and scored each night.</div>", unsafe_allow_html=True)
 
-        success_pct = st.slider(
-            "What % of outreach messages lead to a refill?",
-            min_value=20, max_value=80, value=45, format="%d%%",
-        )
-        st.markdown("<div style='font-size:11px;color:#aaa;margin:-0.5rem 0 0.75rem;'>Industry benchmark is 35–50%. Higher with personalised AI messaging.</div>", unsafe_allow_html=True)
+            cost_per = st.number_input(
+                "Cost per outreach message ($)",
+                min_value=0.01, max_value=50.0, value=0.50, format="%.2f",
+            )
+            st.markdown("<div class='roi-hint'>SMS ≈ $0.05 · Email ≈ $0.02 · Voice ≈ $2.50 · Care mgr ≈ $25</div>", unsafe_allow_html=True)
 
-        cost_per = st.number_input(
-            "Cost per outreach message ($)",
-            min_value=0.01, max_value=50.0, value=0.50, format="%.2f",
-        )
-        st.markdown("<div style='font-size:11px;color:#aaa;margin:-0.5rem 0 0.75rem;'>SMS ≈ $0.05 · Email ≈ $0.02 · Voice ≈ $2.50 · Care manager ≈ $25</div>", unsafe_allow_html=True)
+        with _ri2:
+            success_pct = st.slider(
+                "Outreach success rate",
+                min_value=20, max_value=80, value=45, format="%d%%",
+            )
+            st.markdown("<div class='roi-hint'>% of messages that lead to a refill. Benchmark: 35–50%.</div>", unsafe_allow_html=True)
 
-        hosp_cost = st.number_input(
-            "Average hospitalization cost ($)",
-            min_value=5000, max_value=50000, value=15000, step=1000,
-        )
-        st.markdown("<div style='font-size:11px;color:#aaa;margin:-0.5rem 0 1rem;'>US average for a preventable medication-related admission is $12,000–$18,000.</div>", unsafe_allow_html=True)
+            hosp_cost = st.number_input(
+                "Avg hospitalisation cost ($)",
+                min_value=5000, max_value=50000, value=15000, step=1000,
+            )
+            st.markdown("<div class='roi-hint'>US average for a preventable medication-related admission: $12k–$18k.</div>", unsafe_allow_html=True)
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
         # ── Compute ──────────────────────────────────────────────
         est_interventions = patients_n * 0.5
@@ -1182,33 +1216,38 @@ with tab_returns:
         est_savings       = est_avoided * hosp_cost
         est_roi_ratio     = est_savings / est_cost if est_cost > 0 else 0
 
-        # ── Result card ──────────────────────────────────────────
+        # ── Result card — clearly separated ──────────────────────
         st.markdown(f"""
+        <div style="border-top: 2px solid #e8e8e4; margin: 1rem 0 0.75rem;
+                    padding-top: 0.25rem; font-size:11px; text-transform:uppercase;
+                    letter-spacing:0.1em; color:#aaa; font-weight:600;">
+            Projected result
+        </div>
         <div style="background:{COLORS['ink']}; border-radius:10px;
-                    padding:1.5rem; text-align:center; margin-bottom:0.5rem;">
+                    padding:1.5rem; text-align:center;">
             <div style="font-size:10px; text-transform:uppercase; letter-spacing:0.12em;
-                        color:rgba(255,255,255,0.5); margin-bottom:0.4rem; font-weight:600;">
-                Projected return on investment
+                        color:rgba(255,255,255,0.45); margin-bottom:0.4rem; font-weight:600;">
+                Return on investment
             </div>
             <div style="font-size:3rem; font-weight:300; color:#fff;
-                        letter-spacing:-0.03em; line-height:1; margin-bottom:0.75rem;">
-                ${est_roi_ratio:.0f}<span style="font-size:1.5rem;opacity:0.5;"> : $1</span>
+                        letter-spacing:-0.03em; line-height:1; margin-bottom:1rem;">
+                ${est_roi_ratio:.0f}<span style="font-size:1.4rem;opacity:0.4;"> : $1</span>
             </div>
-            <div style="display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap;">
+            <div style="display:flex; justify-content:center; gap:2rem; flex-wrap:wrap;">
                 <div>
                     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                color:rgba(255,255,255,0.45);margin-bottom:2px;">Hospitalisations avoided</div>
-                    <div style="font-size:1.1rem;font-weight:300;color:#fff;">{est_avoided:,.0f}</div>
+                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Hospitalisations avoided</div>
+                    <div style="font-size:1.2rem;font-weight:300;color:#fff;">{est_avoided:,.0f}</div>
                 </div>
                 <div>
                     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                color:rgba(255,255,255,0.45);margin-bottom:2px;">Total savings</div>
-                    <div style="font-size:1.1rem;font-weight:300;color:{COLORS['low']};">${est_savings:,.0f}</div>
+                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Total savings</div>
+                    <div style="font-size:1.2rem;font-weight:300;color:{COLORS['low']};">${est_savings:,.0f}</div>
                 </div>
                 <div>
                     <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                color:rgba(255,255,255,0.45);margin-bottom:2px;">Programme cost</div>
-                    <div style="font-size:1.1rem;font-weight:300;color:rgba(255,255,255,0.6);">${est_cost:,.0f}</div>
+                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Programme cost</div>
+                    <div style="font-size:1.2rem;font-weight:300;color:rgba(255,255,255,0.55);">${est_cost:,.0f}</div>
                 </div>
             </div>
         </div>
