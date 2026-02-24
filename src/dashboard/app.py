@@ -69,24 +69,77 @@ st.set_page_config(
 # ── Password gate ───────────────────────────────────────────────
 
 _PASSWORD = st.secrets.get("APP_PASSWORD", "monkeys")
+_logo_path = Path(__file__).parent / "logo-tam.svg"
+_logo_b64 = base64.b64encode(_logo_path.read_bytes()).decode()
 
 if "authenticated" not in st.session_state:
     st.session_state["authenticated"] = False
 
 if not st.session_state["authenticated"]:
-    st.markdown("""
+    st.markdown(f"""
     <style>
-        .block-container { max-width: 380px !important; padding-top: 8rem !important; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+        .stApp {{ background-color: #fafaf7 !important; }}
+        header[data-testid="stHeader"] {{ background-color: #fafaf7 !important; }}
+        .block-container {{
+            max-width: 400px !important;
+            padding-top: 5rem !important;
+            padding-left: 2rem !important;
+            padding-right: 2rem !important;
+        }}
+        #MainMenu {{ visibility: hidden; }}
+        footer {{ visibility: hidden; }}
+        .stDeployButton {{ display: none; }}
+        p, div, span {{ font-family: 'Inter', sans-serif !important; }}
+        .stTextInput input {{
+            border: 1px solid #e8e8e4 !important;
+            border-radius: 6px !important;
+            background: #fff !important;
+            font-size: 0.9rem !important;
+            padding: 0.65rem 1rem !important;
+            color: #1a1a1a !important;
+        }}
+        .stButton > button {{
+            background: #1a1a1a !important; color: #fafaf7 !important;
+            border: none !important; border-radius: 6px !important;
+            font-size: 0.85rem !important; font-weight: 500 !important;
+            letter-spacing: 0.04em !important; padding: 0.6rem 1.5rem !important;
+            width: 100% !important;
+        }}
+        .stButton > button:hover {{ opacity: 0.8 !important; }}
     </style>
+    <div style="text-align:center; margin-bottom:2.5rem;">
+        <img src="data:image/svg+xml;base64,{_logo_b64}"
+             style="height:30px; opacity:0.8; margin-bottom:2.5rem; display:block; margin-left:auto; margin-right:auto;"
+             alt="The Agile Monkeys"/>
+        <div style="font-size:11px; text-transform:uppercase; letter-spacing:0.14em;
+                    color:#aaa; font-weight:500; margin-bottom:0.6rem; font-family:Inter,sans-serif;">
+            Welcome to
+        </div>
+        <div style="font-size:1.8rem; font-weight:300; color:#1a1a1a;
+                    letter-spacing:-0.02em; line-height:1.2; margin-bottom:0.4rem; font-family:Inter,sans-serif;">
+            Adherence
+        </div>
+        <div style="font-size:0.8rem; color:#aaa; font-family:Inter,sans-serif;">
+            Predictive intervention engine &mdash; demo
+        </div>
+    </div>
     """, unsafe_allow_html=True)
-    st.markdown("### Predictive Medication Adherence Engine")
-    pwd = st.text_input("Password", type="password", placeholder="Enter password to continue")
-    if st.button("Enter", use_container_width=True):
+
+    pwd = st.text_input("", type="password", placeholder="Password",
+                        label_visibility="collapsed")
+    if st.button("Enter →", use_container_width=True):
         if pwd == _PASSWORD:
             st.session_state["authenticated"] = True
             st.rerun()
         else:
             st.error("Incorrect password.")
+    st.markdown("""
+    <div style="text-align:center; margin-top:3rem;
+                font-size:11px; color:#ccc; letter-spacing:0.04em; font-family:Inter,sans-serif;">
+        theagilemonkeys.com
+    </div>
+    """, unsafe_allow_html=True)
     st.stop()
 
 # ── Styles ─────────────────────────────────────────────────────
@@ -323,11 +376,6 @@ latest_roi = roi.iloc[-1]
 total_savings = roi["savings"].sum()
 total_cost = roi["cost"].sum()
 
-
-# ── Logo ───────────────────────────────────────────────────────
-
-_logo_path = Path(__file__).parent / "logo-tam.svg"
-_logo_b64 = base64.b64encode(_logo_path.read_bytes()).decode()
 
 # ── Header ─────────────────────────────────────────────────────
 
