@@ -304,11 +304,21 @@ st.markdown("""
     .narrative .highlight-green { color: #27ae60; font-weight: 600; }
 
     /* Equal-height metric cards within the same row */
-    [data-testid="stHorizontalBlock"] > div > [data-testid="stMetric"] {
-        height: 100%;
+    [data-testid="stHorizontalBlock"] {
+        align-items: stretch !important;
     }
     [data-testid="stHorizontalBlock"] > div {
         display: flex; flex-direction: column;
+    }
+    [data-testid="stHorizontalBlock"] > div > [data-testid="stMetric"] {
+        flex: 1; height: 100%;
+        border: 1px solid #e8e8e4; border-radius: 8px;
+        padding: 1rem 1.25rem; background: #fff;
+        box-sizing: border-box;
+    }
+    /* Remove double-border from the ROI HTML card sibling */
+    [data-testid="stHorizontalBlock"] > div > .stMarkdown > div > div {
+        height: 100%; box-sizing: border-box;
     }
 
     /* Insight cards */
@@ -424,15 +434,27 @@ def load_interventions():
 
 @st.cache_data
 def load_roi():
-    dates = pd.date_range(end=date.today(), periods=12, freq="W")
+    np.random.seed(7)
+    n = 12
+    weeks = list(range(1, n + 1))
+    # J-curve: cost is flat, savings ramps up exponentially as the model learns
+    # Weeks 1-3: below break-even; weeks 4+: savings accelerate past cost
+    cost    = [4200 + i * 80 + np.random.randint(-100, 100) for i in range(n)]
+    savings = [int(2000 * (1.55 ** i) + np.random.randint(-500, 500)) for i in range(n)]
+    # Cap savings at a credible max per week
+    savings = [min(s, 55000) for s in savings]
+    cumcost    = np.cumsum(cost).tolist()
+    cumsavings = np.cumsum(savings).tolist()
     df = pd.DataFrame({
-        "week": dates,
-        "intervened": [150 + i * 10 + np.random.randint(-20, 20) for i, _ in enumerate(dates)],
-        "successful": [80 + i * 5 + np.random.randint(-10, 10) for i, _ in enumerate(dates)],
-        "savings": [25000 + i * 2000 + np.random.randint(-5000, 5000) for i, _ in enumerate(dates)],
-        "cost": [3000 + i * 100 for i, _ in enumerate(dates)],
+        "week":       weeks,
+        "intervened": [120 + i * 12 + np.random.randint(-15, 15) for i in range(n)],
+        "successful": [int((0.28 + i * 0.015) * (120 + i * 12)) for i in range(n)],
+        "savings":    savings,
+        "cost":       cost,
+        "cum_savings": cumsavings,
+        "cum_cost":    cumcost,
     })
-    df["roi"] = ((df["savings"] - df["cost"]) / df["cost"] * 100).round(1)
+    df["roi"] = ((df["cum_savings"] - df["cum_cost"]) / df["cum_cost"] * 100).round(1)
     return df
 
 
@@ -570,64 +592,114 @@ with tab_problem:
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Divider before charts ──────────────────────────────────────────────
+    # ── Charts: 3-chart row ────────────────────────────────────────────────
     st.markdown("""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
                 color:#aaa;font-weight:600;margin-bottom:0.75rem;">Population at a glance</div>
     """, unsafe_allow_html=True)
 
-    st.markdown("""
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Population risk distribution</div>
-    """, unsafe_allow_html=True)
+    _ch1, _ch2 = st.columns([1, 1])
 
-    fig = go.Figure()
-    fig.add_trace(go.Bar(y=[""], x=[low],  name=f"Low risk  ({low})",   orientation="h",
-                         marker_color=COLORS["low"],  text=f"{low}",  textposition="inside",
-                         textfont=dict(color="white", size=13, family="Inter")))
-    fig.add_trace(go.Bar(y=[""], x=[med],  name=f"Moderate  ({med})",   orientation="h",
-                         marker_color=COLORS["mid"],  text=f"{med}",  textposition="inside",
-                         textfont=dict(color="white", size=13, family="Inter")))
-    fig.add_trace(go.Bar(y=[""], x=[high], name=f"High risk  ({high})", orientation="h",
-                         marker_color=COLORS["high"], text=f"{high}", textposition="inside",
-                         textfont=dict(color="white", size=13, family="Inter")))
-    apply_layout(fig,
-        barmode="stack", height=64, showlegend=True,
-        legend=dict(orientation="h", yanchor="bottom", y=1.4, xanchor="left", x=0,
-                    font=dict(size=11, color=COLORS["dim"]), tracegroupgap=0),
-        xaxis=dict(visible=False), yaxis=dict(visible=False),
-        margin=dict(l=0, r=0, t=28, b=0),
-    )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    # Chart A: Donut — risk tier breakdown
+    with _ch1:
+        st.markdown("""<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                    color:#aaa;font-weight:600;margin-bottom:0.5rem;">Risk tier breakdown</div>""",
+                    unsafe_allow_html=True)
+        fig_donut = go.Figure(go.Pie(
+            labels=["High risk", "Moderate", "Low risk"],
+            values=[high, med, low],
+            hole=0.62,
+            marker=dict(colors=[COLORS["high"], COLORS["mid"], COLORS["low"]],
+                        line=dict(color="#fff", width=2)),
+            textinfo="percent",
+            textfont=dict(size=12, family="Inter", color="#fff"),
+            hovertemplate="%{label}: %{value} patients<extra></extra>",
+            sort=False,
+        ))
+        fig_donut.add_annotation(
+            text=f"<b>{high}</b><br><span style='font-size:10px'>high risk</span>",
+            x=0.5, y=0.5, showarrow=False,
+            font=dict(size=14, color=COLORS["high"], family="Inter"),
+            align="center",
+        )
+        apply_layout(fig_donut,
+            height=220, showlegend=True,
+            hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a", font_size=11,
+                            font_family="Inter", bordercolor="#e8e8e4"),
+            legend=dict(orientation="h", yanchor="top", y=-0.05, xanchor="center", x=0.5,
+                        font=dict(size=10, color=COLORS["dim"])),
+            margin=dict(l=0, r=0, t=8, b=40),
+        )
+        st.plotly_chart(fig_donut, use_container_width=True, config={"displayModeBar": False})
 
+    # Chart B: PDC Distribution histogram
+    with _ch2:
+        st.markdown("""<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                    color:#aaa;font-weight:600;margin-bottom:0.5rem;">PDC distribution</div>""",
+                    unsafe_allow_html=True)
+        _bins = np.arange(0, 1.05, 0.1)
+        _counts, _edges = np.histogram(pop["pdc"].clip(0, 1), bins=_bins)
+        _midpoints = [(_edges[i] + _edges[i+1]) / 2 for i in range(len(_edges)-1)]
+        _bar_colors = [COLORS["high"] if m < 0.6 else COLORS["mid"] if m < 0.8 else COLORS["low"]
+                       for m in _midpoints]
+        fig_hist = go.Figure(go.Bar(
+            x=[f"{int(e*100)}%" for e in _edges[:-1]],
+            y=_counts,
+            marker_color=_bar_colors,
+            marker_line_width=0,
+            hovertemplate="PDC %{x}: %{y} patients<extra></extra>",
+        ))
+        fig_hist.add_vline(x=7.5, line_dash="dot", line_color=COLORS["faint"],
+                           annotation_text="80% target", annotation_position="top right",
+                           annotation_font=dict(size=9, color=COLORS["dim"]))
+        apply_layout(fig_hist,
+            height=220,
+            hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a", font_size=11,
+                            font_family="Inter", bordercolor="#e8e8e4"),
+            xaxis=dict(showgrid=False, tickfont=dict(size=9), tickangle=-30),
+            yaxis=dict(showgrid=True, gridcolor=COLORS["faint"], gridwidth=0.5,
+                       tickfont=dict(size=9), title="Patients"),
+            margin=dict(l=40, r=8, t=8, b=48),
+        )
+        st.plotly_chart(fig_hist, use_container_width=True, config={"displayModeBar": False})
+
+    # Chart C: Risk by condition — full width
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.5rem;">Adherence by condition</div>
-    <p style="font-size:13px;color:{COLORS['body']};margin-bottom:0.75rem;max-width:600px;">
-        These are the conditions where patients are most likely to stop their medication —
-        and where the engine would intervene first.
+                color:#aaa;font-weight:600;margin-bottom:0.25rem;">Average adherence by condition</div>
+    <p style="font-size:12px;color:{COLORS['dim']};margin-bottom:0.75rem;">
+        Conditions below 80% are where the engine focuses first.
+        Red bars indicate the highest intervention priority.
     </p>
     """, unsafe_allow_html=True)
 
     cond_pdc = pop.groupby("condition")["pdc"].mean().sort_values()
-    fig2 = go.Figure()
-    fig2.add_trace(go.Bar(
+    cond_high = pop[pop["level"] == "high"].groupby("condition").size()
+    fig_cond = go.Figure()
+    fig_cond.add_trace(go.Bar(
         x=cond_pdc.values, y=cond_pdc.index, orientation="h",
         marker_color=[COLORS["high"] if v < 0.65 else COLORS["mid"] if v < 0.8 else COLORS["low"]
                       for v in cond_pdc.values],
-        text=[f"{v:.0%}" for v in cond_pdc.values], textposition="outside",
+        marker_line_width=0,
+        text=[f"{v:.0%}" for v in cond_pdc.values],
+        textposition="outside",
         textfont=dict(size=12, family="Inter", color=COLORS["ink"]),
+        hovertemplate="%{y}: %{x:.0%} avg adherence<extra></extra>",
     ))
-    fig2.add_vline(x=0.8, line_dash="dot", line_color=COLORS["faint"],
-                   annotation_text="80% target",
-                   annotation_font=dict(size=10, color=COLORS["dim"]))
-    apply_layout(fig2,
-        height=220, xaxis=dict(visible=False, range=[0, 1.05]),
-        yaxis=dict(showgrid=False), margin=dict(l=0, r=60, t=8, b=0),
+    fig_cond.add_vline(x=0.8, line_dash="dot", line_color=COLORS["faint"],
+                       annotation_text="80% target", annotation_position="top right",
+                       annotation_font=dict(size=10, color=COLORS["dim"]))
+    apply_layout(fig_cond,
+        height=200,
+        hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a", font_size=11,
+                        font_family="Inter", bordercolor="#e8e8e4"),
+        xaxis=dict(visible=False, range=[0, 1.1]),
+        yaxis=dict(showgrid=False, tickfont=dict(size=12, color=COLORS["ink"])),
+        margin=dict(l=0, r=70, t=8, b=0),
     )
-    st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_cond, use_container_width=True, config={"displayModeBar": False})
 
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
@@ -1033,60 +1105,121 @@ with tab_return:
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Chart row: Funnel + Channel performance ────────────────────────────
+    st.markdown("""
+    <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+                color:#aaa;font-weight:600;margin-bottom:0.75rem;">How interventions flow</div>
+    """, unsafe_allow_html=True)
+
+    _rc1, _rc2 = st.columns([1, 1])
+
+    # Funnel chart
+    with _rc1:
+        st.markdown("""<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                    color:#aaa;font-weight:600;margin-bottom:0.5rem;">Intervention funnel</div>""",
+                    unsafe_allow_html=True)
+        _funnel_stages = ["Patients scored", "Flagged high risk", "Outreach sent",
+                          "Responded", "Refill confirmed", "Hospitalisation avoided"]
+        _funnel_vals = [
+            total,
+            high + med,
+            total_i,
+            responded,
+            succeeded,
+            int(succeeded * 0.15),
+        ]
+        _funnel_colors = [COLORS["faint"], COLORS["mid"], COLORS["accent"],
+                          "#5b8dd9", COLORS["low"], "#1e8449"]
+        fig_funnel = go.Figure(go.Funnel(
+            y=_funnel_stages,
+            x=_funnel_vals,
+            textinfo="value+percent initial",
+            textfont=dict(size=11, family="Inter", color="#fff"),
+            marker=dict(color=_funnel_colors, line=dict(width=0)),
+            connector=dict(line=dict(color=COLORS["border"], dash="dot", width=1)),
+            hovertemplate="%{label}: %{value:,}<extra></extra>",
+        ))
+        apply_layout(fig_funnel,
+            height=300,
+            hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a", font_size=11,
+                            font_family="Inter", bordercolor="#e8e8e4"),
+            margin=dict(l=8, r=8, t=8, b=8),
+            funnelmode="stack",
+        )
+        st.plotly_chart(fig_funnel, use_container_width=True, config={"displayModeBar": False})
+
+    # Channel performance
+    with _rc2:
+        st.markdown("""<div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;
+                    color:#aaa;font-weight:600;margin-bottom:0.5rem;">Success rate by channel</div>""",
+                    unsafe_allow_html=True)
+        ch = intv.groupby("channel").agg(
+            sent=("id", "count"),
+            success=("status", lambda x: (x == "Successful").sum()),
+        )
+        ch["rate"] = (ch["success"] / ch["sent"]).round(2)
+        ch = ch.sort_values("rate", ascending=True)
+        fig_ch = go.Figure(go.Bar(
+            x=ch["rate"].values, y=ch.index, orientation="h",
+            marker_color=[COLORS["low"] if v >= 0.3 else COLORS["mid"] if v >= 0.2 else COLORS["dim"]
+                          for v in ch["rate"].values],
+            marker_line_width=0,
+            text=[f'{v:.0%}' for v in ch["rate"].values],
+            textposition="outside",
+            textfont=dict(size=12, family="Inter", color=COLORS["ink"]),
+            hovertemplate="%{y}: %{x:.0%} success rate<extra></extra>",
+        ))
+        apply_layout(fig_ch,
+            height=300,
+            hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a", font_size=11,
+                            font_family="Inter", bordercolor="#e8e8e4"),
+            xaxis=dict(visible=False, range=[0, 0.55]),
+            yaxis=dict(showgrid=False, tickfont=dict(size=12, color=COLORS["ink"])),
+            margin=dict(l=0, r=60, t=8, b=8),
+        )
+        st.plotly_chart(fig_ch, use_container_width=True, config={"displayModeBar": False})
+
+    # ── J-curve: cumulative savings vs cost ────────────────────────────────
+    # Find break-even week
+    _be_week = next((w for w, s, c in zip(roi["week"], roi["cum_savings"], roi["cum_cost"]) if s >= c), None)
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.5rem;">Which channels work best</div>
-    <p style="font-size:13px;color:{COLORS['body']};margin-bottom:0.75rem;max-width:600px;">
-        Success rate = patient refilled after outreach. The engine automatically prioritises
-        the most effective channel per patient.
+                color:#aaa;font-weight:600;margin-bottom:0.25rem;">Cumulative return &mdash; 12 weeks</div>
+    <p style="font-size:12px;color:{COLORS['dim']};margin-bottom:0.75rem;">
+        Programme breaks even at week {_be_week} and accelerates as the model learns.
+        Cumulative savings outpace cumulative cost by week&nbsp;12.
     </p>
     """, unsafe_allow_html=True)
 
-    ch = intv.groupby("channel").agg(
-        sent=("id", "count"),
-        success=("status", lambda x: (x == "Successful").sum()),
-    )
-    ch["rate"] = (ch["success"] / ch["sent"]).round(2)
-    ch = ch.sort_values("rate", ascending=True)
-
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=ch["rate"].values, y=ch.index, orientation="h",
-        marker_color=[COLORS["low"] if v >= 0.3 else COLORS["mid"] if v >= 0.2 else COLORS["dim"]
-                      for v in ch["rate"].values],
-        text=[f'{v:.0%}  ({ch.loc[ch.index[i], "sent"]} sent)' for i, v in enumerate(ch["rate"].values)],
-        textposition="outside",
-        textfont=dict(size=11, family="Inter", color=COLORS["ink"]),
-    ))
-    apply_layout(fig,
-        height=220, xaxis=dict(visible=False, range=[0, 0.65]),
-        yaxis=dict(showgrid=False, tickfont=dict(size=11)),
-        margin=dict(l=80, r=140, t=8, b=0),
-    )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-
-    st.markdown(f"""
-    <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
-    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Savings vs. programme cost &mdash; 12 weeks</div>
-    """, unsafe_allow_html=True)
-
-    fig2 = go.Figure()
-    fig2.add_trace(go.Scatter(
-        x=roi["week"], y=roi["savings"], mode="lines+markers", name="Avoided hospitalisations",
+    fig_roi = go.Figure()
+    fig_roi.add_trace(go.Scatter(
+        x=roi["week"], y=roi["cum_savings"],
+        mode="lines+markers", name="Cumulative savings",
         line=dict(color=COLORS["low"], width=2.5),
         marker=dict(size=6, color=COLORS["low"], line=dict(width=1.5, color="#fff")),
-        fill="tozeroy", fillcolor="rgba(39,174,96,0.08)",
-        hovertemplate="Week %{x}<br><b>$%{y:,.0f}</b><extra>Avoided hospitalisations</extra>",
+        fill="tozeroy", fillcolor="rgba(39,174,96,0.07)",
+        hovertemplate="Week %{x}<br><b>$%{y:,.0f}</b> saved<extra></extra>",
     ))
-    fig2.add_trace(go.Scatter(
-        x=roi["week"], y=roi["cost"], mode="lines+markers", name="Programme cost",
+    fig_roi.add_trace(go.Scatter(
+        x=roi["week"], y=roi["cum_cost"],
+        mode="lines+markers", name="Cumulative cost",
         line=dict(color=COLORS["high"], width=1.5, dash="dot"),
         marker=dict(size=5, color=COLORS["high"], line=dict(width=1.5, color="#fff")),
-        hovertemplate="Week %{x}<br><b>$%{y:,.0f}</b><extra>Programme cost</extra>",
+        hovertemplate="Week %{x}<br><b>$%{y:,.0f}</b> spent<extra></extra>",
     ))
-    apply_layout(fig2,
+    if _be_week:
+        _be_val = roi.loc[roi["week"] == _be_week, "cum_savings"].values[0]
+        fig_roi.add_annotation(
+            x=_be_week, y=_be_val,
+            text=f"Break-even<br>week {_be_week}",
+            showarrow=True, arrowhead=2, arrowcolor=COLORS["dim"],
+            font=dict(size=10, color=COLORS["dim"], family="Inter"),
+            bgcolor="#fff", bordercolor=COLORS["border"], borderwidth=1,
+            ax=30, ay=-40,
+        )
+    apply_layout(fig_roi,
         height=300, showlegend=True,
         hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a",
                         font_size=12, font_family="Inter, sans-serif",
@@ -1095,10 +1228,11 @@ with tab_return:
                     font=dict(size=11, color=COLORS["dim"])),
         yaxis=dict(showgrid=True, gridcolor=COLORS["faint"], gridwidth=0.5, zeroline=False,
                    tickfont=dict(size=10), tickprefix="$"),
-        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=10)),
-        margin=dict(l=60, r=16, t=28, b=32),
+        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=10),
+                   title="Week", tickmode="linear", dtick=2),
+        margin=dict(l=60, r=16, t=28, b=40),
     )
-    st.plotly_chart(fig2, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig_roi, use_container_width=True, config={"displayModeBar": False})
 
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:2rem 0 1.5rem;"></div>
