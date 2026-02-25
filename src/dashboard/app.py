@@ -278,7 +278,7 @@ st.markdown("""
         color: #1a1a1a !important;
     }
 
-    /* Plotly chart axis text — override SVG fill */
+    /* Plotly chart axis text &mdash; override SVG fill */
     .js-plotly-plot .plotly .gtitle,
     .js-plotly-plot .plotly .xtitle,
     .js-plotly-plot .plotly .ytitle,
@@ -303,10 +303,19 @@ st.markdown("""
     .narrative .highlight-red { color: #c0392b; font-weight: 600; }
     .narrative .highlight-green { color: #27ae60; font-weight: 600; }
 
+    /* Equal-height metric cards within the same row */
+    [data-testid="stHorizontalBlock"] > div > [data-testid="stMetric"] {
+        height: 100%;
+    }
+    [data-testid="stHorizontalBlock"] > div {
+        display: flex; flex-direction: column;
+    }
+
     /* Insight cards */
     .insight-card {
         background: #fff; border: 1px solid #e8e8e4; border-radius: 8px;
-        padding: 1.25rem 1.5rem; margin-bottom: 1rem;
+        padding: 1.25rem 1.5rem; margin-bottom: 1rem; height: 100%;
+        box-sizing: border-box;
     }
     .insight-card .label {
         font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.1em;
@@ -507,7 +516,7 @@ with tab_problem:
         In this simulation of <strong>{total:,} patients</strong>,
         the engine flags
         <span class="highlight-red">{high} as high risk</span> of stopping their
-        medication in the next 30 days — and <span class="highlight-red">{below_target}</span>
+        medication in the next 30 days &mdash; and <span class="highlight-red">{below_target}</span>
         are already below the 80% adherence target.
     </p>
     """, unsafe_allow_html=True)
@@ -528,8 +537,8 @@ with tab_problem:
             <div class="step-num">1</div>
             <div class="step-content">
                 <div class="step-title">Predict</div>
-                <div class="step-desc">The model analyzes 50+ variables per patient — fill history,
-                    gaps between refills, copay burden, diagnoses — and scores each patient
+                <div class="step-desc">The model analyzes 50+ variables per patient &mdash; fill history,
+                    gaps between refills, copay burden, diagnoses &mdash; and scores each patient
                     0–100 on their likelihood of stopping.</div>
             </div>
         </div>
@@ -538,7 +547,7 @@ with tab_problem:
             <div class="step-content">
                 <div class="step-title">Intervene</div>
                 <div class="step-desc">High-risk patients receive automated outreach
-                    via SMS, email, phone, or chatbot — personalized to their barrier.
+                    via SMS, email, phone, or chatbot &mdash; personalized to their barrier.
                     Cost issue? We surface discount programs. Forgetfulness? We send reminders.</div>
             </div>
         </div>
@@ -623,7 +632,7 @@ with tab_problem:
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.5rem;">High-risk patients — tonight's queue</div>
+                color:#aaa;font-weight:600;margin-bottom:0.5rem;">High-risk patients &mdash; tonight's queue</div>
     <p style="font-size:13px;color:{COLORS['body']};margin-bottom:0.75rem;max-width:600px;">
         {len(high_df)} patients flagged. Average {avg_gap:.0f} days since last refill,
         average ${avg_copay:.0f} copay. The engine will contact all of them tonight.
@@ -666,7 +675,7 @@ with tab_how:
     st.markdown(f"""
     <p class="narrative">
         Every night, the engine scores your entire population and generates a prioritised
-        outreach queue — automatically. No care manager involved, no manual review.
+        outreach queue &mdash; automatically. No care manager involved, no manual review.
         Below is tonight's queue, followed by one patient's complete journey from flag to refill.
     </p>
     """, unsafe_allow_html=True)
@@ -728,9 +737,9 @@ with tab_how:
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:2rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Follow one patient — end to end</div>
+                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Follow one patient &mdash; end to end</div>
     <p class="narrative">
-        <strong>{jp_id}</strong> — {jp_age} years old, {jp_cond}, {jp_gap} days without {jp_med}.
+        <strong>{jp_id}</strong> &mdash; {jp_age} years old, {jp_cond}, {jp_gap} days without {jp_med}.
         The engine flagged them last night. Walk through what happens next.
     </p>
     """, unsafe_allow_html=True)
@@ -788,7 +797,7 @@ with tab_how:
         _s0_state = "done" if step > 0 else "active"
         st.markdown(_ac_header(0, "Engine flags the patient", "Overnight scoring run", _s0_state), unsafe_allow_html=True)
         if step == 0:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The model scores <strong>{jp_id}</strong> across 50+ variables — fill history, copay burden, diagnosis, refill gaps.</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The model scores <strong>{jp_id}</strong> across 50+ variables &mdash; fill history, copay burden, diagnosis, refill gaps.</div></div>", unsafe_allow_html=True)
             if st.button("Run scoring", key="journey_btn_0", use_container_width=True):
                 with st.spinner("Scoring patient..."):
                     _time.sleep(0.8)
@@ -796,7 +805,7 @@ with tab_how:
                         "risk_score": 87, "risk_level": "high", "confidence_score": 0.91,
                         "top_risk_factors": [
                             {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
-                            {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61% — below 80% target"},
+                            {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61% &mdash; below 80% target"},
                             {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
                         ],
                     }
@@ -808,7 +817,7 @@ with tab_how:
                 sc      = COLORS["high"] if level == "high" else COLORS["mid"] if level == "medium" else COLORS["low"]
                 factors = pred.get("top_risk_factors", [])
                 _fl = {
-                    "pdc_90_days": "Medication coverage — last 90 days",
+                    "pdc_90_days": "Medication coverage &mdash; last 90 days",
                     "gap_count": "Number of refill gaps",
                     "days_since_last_fill": "Days since last fill",
                 }
@@ -846,7 +855,7 @@ with tab_how:
         _s1_state = "done" if step > 1 else "active" if step == 1 else "locked"
         st.markdown(_ac_header(1, "Outreach triggered automatically", "No one clicked anything", _s1_state), unsafe_allow_html=True)
         if step == 1:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>Because the score exceeds the threshold, the engine automatically drafts and sends an SMS — no care manager involved.</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ac-body'><div class='ac-desc'>Because the score exceeds the threshold, the engine automatically drafts and sends an SMS &mdash; no care manager involved.</div></div>", unsafe_allow_html=True)
             if st.button("Send outreach SMS", key="journey_btn_1", use_container_width=True):
                 with st.spinner("Sending..."):
                     _time.sleep(0.6)
@@ -874,14 +883,14 @@ with tab_how:
         _s2_state = "done" if step > 2 else "active" if step == 2 else "locked"
         st.markdown(_ac_header(2, "Patient replies", "AI handles the response", _s2_state), unsafe_allow_html=True)
         if step == 2:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The patient texts back. The AI identifies the barrier and responds with targeted support — no human reads the message.</div></div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The patient texts back. The AI identifies the barrier and responds with targeted support &mdash; no human reads the message.</div></div>", unsafe_allow_html=True)
             if st.button("Patient: It's too expensive", key="journey_btn_2", use_container_width=True):
                 with st.spinner("AI responding..."):
                     _time.sleep(1.0)
                     st.session_state["journey_conv"] = "demo-conv-001"
                     st.session_state["journey_chat"] = {
                         "conversation_id": "demo-conv-001",
-                        "response": "Hi there, I understand cost can be a concern. Good news — there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
+                        "response": "Hi there, I understand cost can be a concern. Good news &mdash; there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
                         "identified_barrier": "cost",
                         "suggested_action": "check_copay_assistance",
                     }
@@ -1000,7 +1009,7 @@ with tab_return:
         In a simulated 12-week deployment, the engine triggered
         <strong>{total_i} automated interventions</strong>.
         <span class="highlight-green">{succeeded} led to a refill</span> —
-        a {success_rate:.0%} success rate — generating
+        a {success_rate:.0%} success rate &mdash; generating
         <span class="highlight-green">${total_savings:,.0f} in avoided hospitalisations</span>
         on an investment of <strong>${total_cost:,.0f}</strong>.
         That's <strong>${roi_ratio:.0f} back for every $1 in</strong>.
@@ -1049,21 +1058,28 @@ with tab_return:
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
-                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Savings vs. programme cost — 12 weeks</div>
+                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Savings vs. programme cost &mdash; 12 weeks</div>
     """, unsafe_allow_html=True)
 
     fig2 = go.Figure()
     fig2.add_trace(go.Scatter(
         x=roi["week"], y=roi["savings"], mode="lines+markers", name="Avoided hospitalisations",
-        line=dict(color=COLORS["low"], width=2.5), marker=dict(size=5),
+        line=dict(color=COLORS["low"], width=2.5),
+        marker=dict(size=6, color=COLORS["low"], line=dict(width=1.5, color="#fff")),
         fill="tozeroy", fillcolor="rgba(39,174,96,0.08)",
+        hovertemplate="Week %{x}<br><b>$%{y:,.0f}</b><extra>Avoided hospitalisations</extra>",
     ))
     fig2.add_trace(go.Scatter(
-        x=roi["week"], y=roi["cost"], mode="lines", name="Programme cost",
+        x=roi["week"], y=roi["cost"], mode="lines+markers", name="Programme cost",
         line=dict(color=COLORS["high"], width=1.5, dash="dot"),
+        marker=dict(size=5, color=COLORS["high"], line=dict(width=1.5, color="#fff")),
+        hovertemplate="Week %{x}<br><b>$%{y:,.0f}</b><extra>Programme cost</extra>",
     ))
     apply_layout(fig2,
         height=300, showlegend=True,
+        hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a",
+                        font_size=12, font_family="Inter, sans-serif",
+                        bordercolor="#e8e8e4"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0,
                     font=dict(size=11, color=COLORS["dim"])),
         yaxis=dict(showgrid=True, gridcolor=COLORS["faint"], gridwidth=0.5, zeroline=False,
@@ -1126,33 +1142,40 @@ with tab_return:
         est_savings       = est_avoided * hosp_cost
         est_roi_ratio     = est_savings / est_cost if est_cost > 0 else 0
 
-        st.markdown(f"""
-        <div style="border-top:2px solid #e8e8e4; margin:1rem 0 0.75rem;
-                    padding-top:0.25rem; font-size:11px; text-transform:uppercase;
-                    letter-spacing:0.1em; color:#aaa; font-weight:600;">Projected result</div>
-        <div style=\"background:{COLORS['ink']}; border-radius:10px; padding:1.5rem; text-align:center;\">
-            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;
-                        color:rgba(255,255,255,0.45);margin-bottom:0.4rem;font-weight:600;">
-                Return on investment</div>
-            <div style="font-size:3rem;font-weight:300;color:#fff;
-                        letter-spacing:-0.03em;line-height:1;margin-bottom:1rem;">
-                ${est_roi_ratio:.0f}<span style="font-size:1.4rem;opacity:0.4;"> : $1</span></div>
-            <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;">
-                <div>
-                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Hospitalisations avoided</div>
-                    <div style="font-size:1.2rem;font-weight:300;color:#fff;">{est_avoided:,.0f}</div>
-                </div>
-                <div>
-                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Total savings</div>
-                    <div style=\"font-size:1.2rem;font-weight:300;color:{COLORS['low']};\">${est_savings:,.0f}</div>
-                </div>
-                <div>
-                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Programme cost</div>
-                    <div style="font-size:1.2rem;font-weight:300;color:rgba(255,255,255,0.55);">${est_cost:,.0f}</div>
+        _roi_lbl  = f"${est_roi_ratio:.0f} : $1"
+        _sav_lbl  = f"${est_savings:,.0f}"
+        _cost_lbl = f"${est_cost:,.0f}"
+        _avd_lbl  = f"{est_avoided:,.0f}"
+        st.markdown(
+            f"""
+            <div style="border-top:2px solid #e8e8e4; margin:1rem 0 0.75rem;
+                        padding-top:0.25rem; font-size:11px; text-transform:uppercase;
+                        letter-spacing:0.1em; color:#aaa; font-weight:600;">Projected result</div>
+            <div style="background:{COLORS['ink']};border-radius:10px;padding:1.5rem;text-align:center;">
+                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;
+                            color:rgba(255,255,255,0.45);margin-bottom:0.4rem;font-weight:600;">
+                    Return on investment</div>
+                <div style="font-size:3rem;font-weight:300;color:#fff;
+                            letter-spacing:-0.03em;line-height:1;margin-bottom:1rem;">
+                    {_roi_lbl}</div>
+                <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+                                    color:rgba(255,255,255,0.4);margin-bottom:3px;">Hospitalisations avoided</div>
+                        <div style="font-size:1.2rem;font-weight:300;color:#fff;">{_avd_lbl}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+                                    color:rgba(255,255,255,0.4);margin-bottom:3px;">Total savings</div>
+                        <div style="font-size:1.2rem;font-weight:300;color:{COLORS['low']};">{_sav_lbl}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+                                    color:rgba(255,255,255,0.4);margin-bottom:3px;">Programme cost</div>
+                        <div style="font-size:1.2rem;font-weight:300;color:rgba(255,255,255,0.55);">{_cost_lbl}</div>
+                    </div>
                 </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True,
+        )
