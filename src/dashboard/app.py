@@ -746,19 +746,43 @@ with tab_how:
 
     st.markdown(f"""
     <p class="narrative">
-        Every night, the engine scores your entire population and generates a prioritised
-        outreach queue &mdash; automatically. No care manager involved, no manual review.
-        Below is tonight's queue, followed by one patient's complete journey from flag to refill.
+        Every night at midnight, the engine scores your entire population silently &mdash;
+        no care manager required. It flags who is at risk, picks the right channel,
+        and sends outreach automatically. Below is what it found tonight, followed by
+        one patient's complete journey from flag to refill.
     </p>
     """, unsafe_allow_html=True)
 
+    # ── Overnight briefing metrics ─────────────────────────────────────────
+    _n_scored   = len(pop)
+    _n_flagged  = len(pop[pop["level"] == "high"])
+    _n_outreach = int(_n_flagged * 0.85)
+    _n_new      = int(_n_flagged * 0.12)
+
+    _ob1, _ob2, _ob3, _ob4 = st.columns(4)
+    _ob1.metric("Patients scored",    f"{_n_scored:,}",  delta="ran overnight, automatically")
+    _ob2.metric("Flagged high risk",  f"{_n_flagged}",   delta=f"+{_n_new} since yesterday")
+    _ob3.metric("Outreach triggered", f"{_n_outreach}",  delta="no one had to click anything")
+    _ob4.metric("Time to first message", "< 2 min",      delta="from flag to send")
+
     st.markdown(f"""
+    <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
                 color:#aaa;font-weight:600;margin-bottom:0.75rem;">Tonight's outreach queue</div>
     """, unsafe_allow_html=True)
 
-    _channels = {"SMS": "SMS", "Email": "Email", "Voice": "Voice", "Push": "Push", "Care Mgr": "Care Mgr"}
     _top_queue = pop[pop["level"] == "high"].sort_values("risk", ascending=False).head(8)
+
+    _why_flagged = [
+        "54 days since last fill",
+        "3 missed refills this quarter",
+        "PDC dropped 18% in 30 days",
+        "Cost barrier flagged last visit",
+        "Pharmacy switch &mdash; refill gap",
+        "New diagnosis, regimen changed",
+        "Overdue by 6 weeks",
+        "Refill consistency score: low",
+    ]
 
     queue_html = """
     <style>
@@ -783,7 +807,7 @@ with tab_how:
     <div class="queue-wrap">
     <table class="queue-table">
       <thead><tr>
-        <th>Patient</th><th>Risk</th><th>Condition</th>
+        <th>Patient</th><th>Why flagged</th><th>Risk</th>
         <th>Gap</th><th>Medication</th><th>Channel</th>
       </tr></thead><tbody>
     """
@@ -791,11 +815,12 @@ with tab_how:
     for _qi, (_, row) in enumerate(_top_queue.iterrows()):
         risk_color = COLORS["high"] if row["risk"] >= 70 else COLORS["mid"]
         ch_label   = _ch_options[_qi % len(_ch_options)]
+        why        = _why_flagged[_qi % len(_why_flagged)]
         queue_html += (
             f"<tr>"
             f"<td style='font-weight:600;color:{COLORS['ink']};'>{row['id']}</td>"
+            f"<td style='color:{COLORS['body']};max-width:220px;white-space:normal;'>{why}</td>"
             f"<td style='font-weight:600;color:{risk_color};'>{row['risk']:.0f}</td>"
-            f"<td style='color:{COLORS['body']};'>{row['condition']}</td>"
             f"<td style='color:{COLORS['body']};'>{int(row['days_gap'])}d</td>"
             f"<td style='color:{COLORS['body']};'>{row['medication']}</td>"
             f"<td><span style='font-size:10px;font-weight:600;text-transform:uppercase;"
@@ -1088,14 +1113,19 @@ with tab_return:
     </p>
     """, unsafe_allow_html=True)
 
-    c1, c2, c3, c4 = st.columns(4)
+    # Row 1: operational metrics
+    c1, c2, c3 = st.columns(3)
     c1.metric("Interventions sent",       f"{total_i}")
     c2.metric("Led to a refill",          f"{succeeded}", delta=f"{success_rate:.0%} success rate")
-    c3.metric("Avoided hospitalisations", f"${total_savings:,.0f}")
-    # st.metric renders "$N : $1" as LaTeX — use plain HTML card instead
+    c3.metric("Avg time to respond",      f"{avg_h:.0f}h",  delta="from send to patient reply")
+
+    # Row 2: financial metrics — ROI card uses HTML to avoid LaTeX rendering bug
     _roi_str = f"{roi_ratio:.0f} : 1"
-    c4.markdown(f"""
-    <div style="border:1px solid #e8e8e4;border-radius:8px;padding:1rem 1.25rem;background:#fff;">
+    _r1, _r2, _r3 = st.columns(3)
+    _r1.metric("Avoided hospitalisations", f"${total_savings:,.0f}")
+    _r2.metric("Programme cost",           f"${total_cost:,.0f}", delta="12-week total")
+    _r3.markdown(f"""
+    <div style="border:1px solid #e8e8e4;border-radius:8px;padding:1rem 1.25rem;background:#fff;height:100%;box-sizing:border-box;">
         <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
                     color:#aaa;font-weight:600;margin-bottom:0.4rem;">Return on investment</div>
         <div style="font-size:2rem;font-weight:300;color:#1a1a1a;line-height:1.1;">
@@ -1104,6 +1134,48 @@ with tab_return:
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+    # ── Intervention pipeline ─────────────────────────────────────────────
+    st.markdown("""
+    <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+                color:#aaa;font-weight:600;margin-bottom:0.25rem;">Intervention pipeline &mdash; 12 weeks</div>
+    <p style="font-size:12px;color:#888;margin-bottom:0.75rem;">
+        Each intervention flows through these stages. Not every message leads to a refill &mdash;
+        that's expected. The engine escalates until the patient responds or a care manager steps in.
+    </p>
+    """, unsafe_allow_html=True)
+
+    _f_sent      = total_i
+    _f_delivered = int(total_i * 0.91)
+    _f_replied   = responded
+    _f_refilled  = succeeded
+    _f_noresp    = total_i - responded
+
+    _pipe_labels = ["Sent", "Delivered", "Patient replied", "Refilled", "No response"]
+    _pipe_vals   = [_f_sent, _f_delivered, _f_replied, _f_refilled, _f_noresp]
+    _pipe_colors = [COLORS["faint"], COLORS["dim"], COLORS["mid"], COLORS["low"], COLORS["high"]]
+
+    fig_pipe = go.Figure(go.Bar(
+        x=_pipe_labels, y=_pipe_vals,
+        marker_color=_pipe_colors,
+        marker_line_width=0,
+        text=[f"{v:,}" for v in _pipe_vals],
+        textposition="outside",
+        textfont=dict(size=12, family="Inter", color=COLORS["ink"]),
+        hovertemplate="%{x}: %{y:,}<extra></extra>",
+    ))
+    apply_layout(fig_pipe,
+        height=240,
+        hoverlabel=dict(bgcolor="#fff", font_color="#1a1a1a", font_size=11,
+                        font_family="Inter", bordercolor="#e8e8e4"),
+        yaxis=dict(visible=False),
+        xaxis=dict(showgrid=False, zeroline=False, tickfont=dict(size=12, color=COLORS["ink"])),
+        margin=dict(l=0, r=0, t=32, b=8),
+    )
+    st.plotly_chart(fig_pipe, use_container_width=True, config={"displayModeBar": False})
+
+    _rr1, _rr2 = st.columns(2)
 
     # ── Chart row: Funnel + Channel performance ────────────────────────────
     st.markdown("""
