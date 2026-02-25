@@ -920,207 +920,204 @@ with tab_how:
             f"{check}</div>"
         )
 
-    _ac_pad, _ac_col, _ac_pad2 = st.columns([0, 4, 1])
-    with _ac_col:
-
-        # STEP 0
-        _s0_state = "done" if step > 0 else "active"
-        st.markdown(_ac_header(0, "Engine flags the patient", "Overnight scoring run", _s0_state), unsafe_allow_html=True)
-        if step == 0:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The model scores <strong>{jp_id}</strong> across 50+ variables &mdash; fill history, copay burden, diagnosis, refill gaps.</div></div>", unsafe_allow_html=True)
-            if st.button("Run scoring", key="journey_btn_0", use_container_width=True):
-                with st.spinner("Scoring patient..."):
-                    _time.sleep(0.8)
-                    st.session_state["journey_pred"] = {
-                        "risk_score": 87, "risk_level": "high", "confidence_score": 0.91,
-                        "top_risk_factors": [
-                            {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
-                            {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61%, below 80% target"},
-                            {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
-                        ],
-                    }
-            pred = st.session_state.get("journey_pred")
-            if pred and "error" not in pred:
-                score   = pred.get("risk_score", 0)
-                level   = pred.get("risk_level", "low")
-                conf    = pred.get("confidence_score", 0)
-                sc      = COLORS["high"] if level == "high" else COLORS["mid"] if level == "medium" else COLORS["low"]
-                factors = pred.get("top_risk_factors", [])
-                _fl = {
-                    "pdc_90_days": "Medication coverage, last 90 days",
-                    "gap_count": "Number of refill gaps",
-                    "days_since_last_fill": "Days since last fill",
+    # STEP 0
+    _s0_state = "done" if step > 0 else "active"
+    st.markdown(_ac_header(0, "Engine flags the patient", "Overnight scoring run", _s0_state), unsafe_allow_html=True)
+    if step == 0:
+        st.markdown(f"<div class='ac-body'><div class='ac-desc'>The model scores <strong>{jp_id}</strong> across 50+ variables &mdash; fill history, copay burden, diagnosis, refill gaps.</div></div>", unsafe_allow_html=True)
+        if st.button("Run scoring", key="journey_btn_0", use_container_width=True):
+            with st.spinner("Scoring patient..."):
+                _time.sleep(0.8)
+                st.session_state["journey_pred"] = {
+                    "risk_score": 87, "risk_level": "high", "confidence_score": 0.91,
+                    "top_risk_factors": [
+                        {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
+                        {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61%, below 80% target"},
+                        {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
+                    ],
                 }
-                bars_html = ""
-                for f in factors[:3]:
-                    raw = f.get("factor_name", ""); _rd = f.get("description", "")
-                    d   = _rd if _rd and not _rd.lower().startswith("risk factor:") else _fl.get(raw, raw.replace("_", " ").capitalize())
-                    bw  = min(100, abs(f.get("impact_score", 0)) * 100)
-                    bars_html += (
-                        f"<div style='margin-bottom:0.4rem;'>"
-                        f"<div style='font-size:11px;color:{COLORS['body']};margin-bottom:2px;'>{d}</div>"
-                        f"<div style='height:3px;background:#f0f0ec;border-radius:2px;'>"
-                        f"<div style='width:{bw:.0f}%;height:3px;background:{sc};border-radius:2px;'></div>"
-                        f"</div></div>"
-                    )
-                st.markdown(
-                    f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
-                    f"<div style='display:flex;align-items:baseline;gap:0.6rem;margin-bottom:0.75rem;'>"
-                    f"<span style='font-size:2.5rem;font-weight:300;color:{sc};letter-spacing:-0.03em;line-height:1;'>{score:.0f}</span>"
-                    f"<div><div style='font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:{sc};'>● {level} risk</div>"
-                    f"<div style='font-size:11px;color:#aaa;'>Confidence {conf:.0%} · 30-day window</div></div></div>"
-                    f"<div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:0.5rem;'>Why</div>"
-                    f"{bars_html}</div>",
-                    unsafe_allow_html=True,
+        pred = st.session_state.get("journey_pred")
+        if pred and "error" not in pred:
+            score   = pred.get("risk_score", 0)
+            level   = pred.get("risk_level", "low")
+            conf    = pred.get("confidence_score", 0)
+            sc      = COLORS["high"] if level == "high" else COLORS["mid"] if level == "medium" else COLORS["low"]
+            factors = pred.get("top_risk_factors", [])
+            _fl = {
+                "pdc_90_days": "Medication coverage, last 90 days",
+                "gap_count": "Number of refill gaps",
+                "days_since_last_fill": "Days since last fill",
+            }
+            bars_html = ""
+            for f in factors[:3]:
+                raw = f.get("factor_name", ""); _rd = f.get("description", "")
+                d   = _rd if _rd and not _rd.lower().startswith("risk factor:") else _fl.get(raw, raw.replace("_", " ").capitalize())
+                bw  = min(100, abs(f.get("impact_score", 0)) * 100)
+                bars_html += (
+                    f"<div style='margin-bottom:0.4rem;'>"
+                    f"<div style='font-size:11px;color:{COLORS['body']};margin-bottom:2px;'>{d}</div>"
+                    f"<div style='height:3px;background:#f0f0ec;border-radius:2px;'>"
+                    f"<div style='width:{bw:.0f}%;height:3px;background:{sc};border-radius:2px;'></div>"
+                    f"</div></div>"
                 )
-                st.button("Next", key="journey_next_0", use_container_width=True,
-                          on_click=lambda: st.session_state.update({_step_key: 1}))
-        elif step > 0:
-            pred   = st.session_state.get("journey_pred")
-            sc_txt = "Score <strong>87</strong> · high risk · confidence 91%" if pred else ""
-            st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>{sc_txt}</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+            st.markdown(
+                f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
+                f"<div style='display:flex;align-items:baseline;gap:0.6rem;margin-bottom:0.75rem;'>"
+                f"<span style='font-size:2.5rem;font-weight:300;color:{sc};letter-spacing:-0.03em;line-height:1;'>{score:.0f}</span>"
+                f"<div><div style='font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:{sc};'>● {level} risk</div>"
+                f"<div style='font-size:11px;color:#aaa;'>Confidence {conf:.0%} · 30-day window</div></div></div>"
+                f"<div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:0.5rem;'>Why</div>"
+                f"{bars_html}</div>",
+                unsafe_allow_html=True,
+            )
+            st.button("Next", key="journey_next_0", use_container_width=True,
+                      on_click=lambda: st.session_state.update({_step_key: 1}))
+    elif step > 0:
+        pred   = st.session_state.get("journey_pred")
+        sc_txt = "Score <strong>87</strong> · high risk · confidence 91%" if pred else ""
+        st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>{sc_txt}</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        # STEP 1
-        _s1_state = "done" if step > 1 else "active" if step == 1 else "locked"
-        st.markdown(_ac_header(1, "Outreach triggered automatically", "No one clicked anything", _s1_state), unsafe_allow_html=True)
-        if step == 1:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>Because the score exceeds the threshold, the engine automatically drafts and sends an SMS &mdash; no care manager involved.</div></div>", unsafe_allow_html=True)
-            if st.button("Send outreach SMS", key="journey_btn_1", use_container_width=True):
-                with st.spinner("Sending..."):
-                    _time.sleep(0.6)
-                    st.session_state["journey_outreach"] = {
-                        "status": "sent", "id": str(_uuid.uuid4()),
-                        "msg": _sms_msg, "channel": "SMS",
-                    }
-            ov = st.session_state.get("journey_outreach")
-            if ov:
-                st.markdown(
-                    f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
-                    f"<div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:0.5rem;'>SMS · {jp_id} · {jp_age}y · {jp_cond}</div>"
-                    f"<div style='background:#f0f0ec;border-radius:6px;padding:0.6rem 0.8rem;font-size:12px;color:{COLORS['ink']};line-height:1.6;margin-bottom:0.5rem;'>\"{ov['msg']}\"</div>"
-                    f"<div style='font-size:11px;color:{COLORS['low']};font-weight:600;'>Sent automatically · <span style=\"color:#aaa;font-weight:400;\">ID {ov['id'][:8]}...</span></div>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-                st.button("Next", key="journey_next_1", use_container_width=True,
-                          on_click=lambda: st.session_state.update({_step_key: 2}))
-        elif step > 1:
-            st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>SMS sent · no care manager involved</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # STEP 1
+    _s1_state = "done" if step > 1 else "active" if step == 1 else "locked"
+    st.markdown(_ac_header(1, "Outreach triggered automatically", "No one clicked anything", _s1_state), unsafe_allow_html=True)
+    if step == 1:
+        st.markdown(f"<div class='ac-body'><div class='ac-desc'>Because the score exceeds the threshold, the engine automatically drafts and sends an SMS &mdash; no care manager involved.</div></div>", unsafe_allow_html=True)
+        if st.button("Send outreach SMS", key="journey_btn_1", use_container_width=True):
+            with st.spinner("Sending..."):
+                _time.sleep(0.6)
+                st.session_state["journey_outreach"] = {
+                    "status": "sent", "id": str(_uuid.uuid4()),
+                    "msg": _sms_msg, "channel": "SMS",
+                }
+        ov = st.session_state.get("journey_outreach")
+        if ov:
+            st.markdown(
+                f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
+                f"<div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:0.5rem;'>SMS · {jp_id} · {jp_age}y · {jp_cond}</div>"
+                f"<div style='background:#f0f0ec;border-radius:6px;padding:0.6rem 0.8rem;font-size:12px;color:{COLORS['ink']};line-height:1.6;margin-bottom:0.5rem;'>\"{ov['msg']}\"</div>"
+                f"<div style='font-size:11px;color:{COLORS['low']};font-weight:600;'>Sent automatically · <span style=\"color:#aaa;font-weight:400;\">ID {ov['id'][:8]}...</span></div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+            st.button("Next", key="journey_next_1", use_container_width=True,
+                      on_click=lambda: st.session_state.update({_step_key: 2}))
+    elif step > 1:
+        st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>SMS sent · no care manager involved</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        # STEP 2
-        _s2_state = "done" if step > 2 else "active" if step == 2 else "locked"
-        st.markdown(_ac_header(2, "Patient replies", "AI handles the response", _s2_state), unsafe_allow_html=True)
-        if step == 2:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The patient texts back. The AI identifies the barrier and responds with targeted support &mdash; no human reads the message.</div></div>", unsafe_allow_html=True)
-            if st.button("Patient: It's too expensive", key="journey_btn_2", use_container_width=True):
-                with st.spinner("AI responding..."):
-                    _time.sleep(1.0)
-                    st.session_state["journey_conv"] = "demo-conv-001"
-                    st.session_state["journey_chat"] = {
-                        "conversation_id": "demo-conv-001",
-                        "response": "Hi there, I understand cost can be a concern. Good news &mdash; there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
-                        "identified_barrier": "cost",
-                        "suggested_action": "check_copay_assistance",
-                    }
-            cv = st.session_state.get("journey_chat")
-            if cv:
-                barrier  = cv.get("identified_barrier", "cost")
-                action   = cv.get("suggested_action", "check_copay_assistance")
-                response = cv.get("response", "")
-                st.markdown(
-                    f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
-                    f"<div style='background:#f0f0ec;border-radius:8px 8px 2px 8px;padding:0.6rem 0.8rem;font-size:12px;color:{COLORS['body']};max-width:85%;margin-left:auto;margin-bottom:0.4rem;'>"
-                    f"It's too expensive, I can't afford it</div>"
-                    f"<div style='background:#fff;border:1px solid #e8e8e4;border-radius:2px 8px 8px 8px;padding:0.6rem 0.8rem;font-size:12px;color:{COLORS['ink']};max-width:85%;line-height:1.6;margin-bottom:0.6rem;'>{response}</div>"
-                    f"<span style='font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;background:{COLORS['mid']}22;color:{COLORS['mid']};padding:2px 8px;border-radius:3px;margin-right:4px;'>{barrier.replace('_', ' ')}</span>"
-                    f"<span style='font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;background:{COLORS['low']}22;color:{COLORS['low']};padding:2px 8px;border-radius:3px;'>to {action.replace('_', ' ')}</span>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-                st.button("Next", key="journey_next_2", use_container_width=True,
-                          on_click=lambda: st.session_state.update({_step_key: 3}))
-        elif step > 2:
-            st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>Barrier identified: cost · copay assistance suggested</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # STEP 2
+    _s2_state = "done" if step > 2 else "active" if step == 2 else "locked"
+    st.markdown(_ac_header(2, "Patient replies", "AI handles the response", _s2_state), unsafe_allow_html=True)
+    if step == 2:
+        st.markdown(f"<div class='ac-body'><div class='ac-desc'>The patient texts back. The AI identifies the barrier and responds with targeted support &mdash; no human reads the message.</div></div>", unsafe_allow_html=True)
+        if st.button("Patient: It's too expensive", key="journey_btn_2", use_container_width=True):
+            with st.spinner("AI responding..."):
+                _time.sleep(1.0)
+                st.session_state["journey_conv"] = "demo-conv-001"
+                st.session_state["journey_chat"] = {
+                    "conversation_id": "demo-conv-001",
+                    "response": "Hi there, I understand cost can be a concern. Good news &mdash; there may be savings programs available for your Metformin. Would you like me to check what options might help reduce your costs?",
+                    "identified_barrier": "cost",
+                    "suggested_action": "check_copay_assistance",
+                }
+        cv = st.session_state.get("journey_chat")
+        if cv:
+            barrier  = cv.get("identified_barrier", "cost")
+            action   = cv.get("suggested_action", "check_copay_assistance")
+            response = cv.get("response", "")
+            st.markdown(
+                f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
+                f"<div style='background:#f0f0ec;border-radius:8px 8px 2px 8px;padding:0.6rem 0.8rem;font-size:12px;color:{COLORS['body']};max-width:85%;margin-left:auto;margin-bottom:0.4rem;'>"
+                f"It's too expensive, I can't afford it</div>"
+                f"<div style='background:#fff;border:1px solid #e8e8e4;border-radius:2px 8px 8px 8px;padding:0.6rem 0.8rem;font-size:12px;color:{COLORS['ink']};max-width:85%;line-height:1.6;margin-bottom:0.6rem;'>{response}</div>"
+                f"<span style='font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;background:{COLORS['mid']}22;color:{COLORS['mid']};padding:2px 8px;border-radius:3px;margin-right:4px;'>{barrier.replace('_', ' ')}</span>"
+                f"<span style='font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;background:{COLORS['low']}22;color:{COLORS['low']};padding:2px 8px;border-radius:3px;'>to {action.replace('_', ' ')}</span>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+            st.button("Next", key="journey_next_2", use_container_width=True,
+                      on_click=lambda: st.session_state.update({_step_key: 3}))
+    elif step > 2:
+        st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>Barrier identified: cost · copay assistance suggested</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        # STEP 3
-        _s3_state = "done" if step > 3 else "active" if step == 3 else "locked"
-        st.markdown(_ac_header(3, "Refill confirmed", "PDC recovers", _s3_state), unsafe_allow_html=True)
-        if step == 3:
-            st.markdown(f"<div class='ac-body'><div class='ac-desc'>The patient picks up their prescription. The engine detects the fill event and updates their adherence score automatically.</div></div>", unsafe_allow_html=True)
-            if st.button("Mark refill complete", key="journey_btn_3", use_container_width=True):
-                with st.spinner("Updating records..."):
-                    _time.sleep(0.7)
-                    st.session_state["journey_refill"] = {
-                        "pdc_before": jp_pdc, "pdc_after": _new_pdc, "gap_closed": jp_gap,
-                    }
-            rf = st.session_state.get("journey_refill")
-            if rf:
-                st.markdown(
-                    f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
-                    f"<div style='display:flex;gap:1.5rem;align-items:center;margin-bottom:0.75rem;'>"
-                    f"<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:2px;'>PDC before</div>"
-                    f"<div style='font-size:2rem;font-weight:300;color:{COLORS['high']};'>{rf['pdc_before']:.0%}</div></div>"
-                    f"<div style='font-size:1.2rem;color:#ccc;'>to</div>"
-                    f"<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:2px;'>PDC after</div>"
-                    f"<div style='font-size:2rem;font-weight:300;color:{COLORS['low']};'>{rf['pdc_after']:.0%}</div></div>"
-                    f"</div>"
-                    f"<div style='font-size:12px;color:{COLORS['body']};'>{rf['gap_closed']}-day gap closed · Adherence target restored · "
-                    f"<span style='color:{COLORS['low']};font-weight:600;'>Patient back on track</span></div>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
-                st.button("Next", key="journey_next_3", use_container_width=True,
-                          on_click=lambda: st.session_state.update({_step_key: 4}))
-        elif step > 3:
-            st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>PDC {jp_pdc:.0%} to {_new_pdc:.0%} · {jp_gap}-day gap closed</div>", unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+    # STEP 3
+    _s3_state = "done" if step > 3 else "active" if step == 3 else "locked"
+    st.markdown(_ac_header(3, "Refill confirmed", "PDC recovers", _s3_state), unsafe_allow_html=True)
+    if step == 3:
+        st.markdown(f"<div class='ac-body'><div class='ac-desc'>The patient picks up their prescription. The engine detects the fill event and updates their adherence score automatically.</div></div>", unsafe_allow_html=True)
+        if st.button("Mark refill complete", key="journey_btn_3", use_container_width=True):
+            with st.spinner("Updating records..."):
+                _time.sleep(0.7)
+                st.session_state["journey_refill"] = {
+                    "pdc_before": jp_pdc, "pdc_after": _new_pdc, "gap_closed": jp_gap,
+                }
+        rf = st.session_state.get("journey_refill")
+        if rf:
+            st.markdown(
+                f"<div style='background:#fafaf8;border:1px solid #e8e8e4;border-radius:8px;padding:1rem;margin:0.5rem 0 0.75rem;'>"
+                f"<div style='display:flex;gap:1.5rem;align-items:center;margin-bottom:0.75rem;'>"
+                f"<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:2px;'>PDC before</div>"
+                f"<div style='font-size:2rem;font-weight:300;color:{COLORS['high']};'>{rf['pdc_before']:.0%}</div></div>"
+                f"<div style='font-size:1.2rem;color:#ccc;'>to</div>"
+                f"<div><div style='font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:2px;'>PDC after</div>"
+                f"<div style='font-size:2rem;font-weight:300;color:{COLORS['low']};'>{rf['pdc_after']:.0%}</div></div>"
+                f"</div>"
+                f"<div style='font-size:12px;color:{COLORS['body']};'>{rf['gap_closed']}-day gap closed · Adherence target restored · "
+                f"<span style='color:{COLORS['low']};font-weight:600;'>Patient back on track</span></div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+            st.button("Next", key="journey_next_3", use_container_width=True,
+                      on_click=lambda: st.session_state.update({_step_key: 4}))
+    elif step > 3:
+        st.markdown(f"<div style='padding:0 1.1rem 0.75rem;font-size:12px;color:{COLORS['body']};'>PDC {jp_pdc:.0%} to {_new_pdc:.0%} · {jp_gap}-day gap closed</div>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        # STEP 4
-        _s4_state = "active" if step == 4 else "locked"
-        st.markdown(_ac_header(4, "Hospitalization avoided", "$15,000 saved", _s4_state), unsafe_allow_html=True)
-        if step == 4:
-            st.markdown(f"""
-            <div class='ac-body'>
-            <div style="text-align:center; padding:1rem 0.5rem 0.5rem;">
-                <div style="font-size:2.5rem; margin-bottom:0.5rem;">🏥</div>
-                <div style=\"font-size:1.4rem; font-weight:300; color:{COLORS['ink']}; letter-spacing:-0.02em; margin-bottom:0.5rem;\">
-                    Hospitalization avoided.
+    # STEP 4
+    _s4_state = "active" if step == 4 else "locked"
+    st.markdown(_ac_header(4, "Hospitalization avoided", "$15,000 saved", _s4_state), unsafe_allow_html=True)
+    if step == 4:
+        st.markdown(f"""
+        <div class='ac-body'>
+        <div style="text-align:center; padding:1rem 0.5rem 0.5rem;">
+            <div style="font-size:2.5rem; margin-bottom:0.5rem;">🏥</div>
+            <div style=\"font-size:1.4rem; font-weight:300; color:{COLORS['ink']}; letter-spacing:-0.02em; margin-bottom:0.5rem;\">
+                Hospitalization avoided.
+            </div>
+            <div style=\"font-size:13px; color:{COLORS['body']}; margin:0 auto 1.25rem; line-height:1.7;\">
+                Without this intervention, <strong>{jp_id}</strong> was on a trajectory
+                toward a {jp_cond.lower()}-related admission within 30 days.
+                Average hospitalisation cost: <strong>$15,000</strong>.
+                Programme cost per patient per year: <strong>~$50</strong>.
+            </div>
+            <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; background:#f9f9f7; border-radius:8px; padding:1rem;">
+                <div style="text-align:center;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:4px;">Programme cost / patient</div>
+                    <div style=\"font-size:1.3rem;font-weight:300;color:{COLORS['ink']};\">~$50</div>
                 </div>
-                <div style=\"font-size:13px; color:{COLORS['body']}; margin:0 auto 1.25rem; line-height:1.7;\">
-                    Without this intervention, <strong>{jp_id}</strong> was on a trajectory
-                    toward a {jp_cond.lower()}-related admission within 30 days.
-                    Average hospitalisation cost: <strong>$15,000</strong>.
-                    Programme cost per patient per year: <strong>~$50</strong>.
+                <div style="text-align:center;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:4px;">Hospitalisation avoided</div>
+                    <div style=\"font-size:1.3rem;font-weight:300;color:{COLORS['low']};\">$15,000</div>
                 </div>
-                <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; background:#f9f9f7; border-radius:8px; padding:1rem;">
-                    <div style="text-align:center;">
-                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:4px;">Programme cost / patient</div>
-                        <div style=\"font-size:1.3rem;font-weight:300;color:{COLORS['ink']};\">~$50</div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:4px;">Hospitalisation avoided</div>
-                        <div style=\"font-size:1.3rem;font-weight:300;color:{COLORS['low']};\">$15,000</div>
-                    </div>
-                    <div style="text-align:center;">
-                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:4px;">Return on this patient</div>
-                        <div style=\"font-size:1.3rem;font-weight:300;color:{COLORS['low']};\">~300x</div>
-                    </div>
+                <div style="text-align:center;">
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:#aaa;margin-bottom:4px;">Return on this patient</div>
+                    <div style=\"font-size:1.3rem;font-weight:300;color:{COLORS['low']};\">~300x</div>
                 </div>
             </div>
-            </div>
-            """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
+        </div>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
-        if step > 0:
-            st.markdown("<div style='margin-top:0.75rem;'></div>", unsafe_allow_html=True)
-            if st.button("Start over", key="journey_restart", use_container_width=True):
-                for k in ["journey_pred", "journey_outreach", "journey_chat",
-                          "journey_conv", "journey_refill", _step_key]:
-                    st.session_state.pop(k, None)
-                st.rerun()
+    if step > 0:
+        st.markdown("<div style='margin-top:0.75rem;'></div>", unsafe_allow_html=True)
+        if st.button("Start over", key="journey_restart", use_container_width=True):
+            for k in ["journey_pred", "journey_outreach", "journey_chat",
+                      "journey_conv", "journey_refill", _step_key]:
+                st.session_state.pop(k, None)
+            st.rerun()
 
     st.markdown("""
     <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e8e8e4;text-align:right;">
@@ -1339,84 +1336,81 @@ with tab_return:
     </style>
     """, unsafe_allow_html=True)
 
-    _roi_pad, _roi_col, _roi_pad2 = st.columns([0, 4, 1])
-    with _roi_col:
+    _ri1, _ri2 = st.columns(2)
+    with _ri1:
+        patients_n = st.number_input(
+            "Patients in the programme",
+            min_value=100, max_value=100_000, value=5000, step=500,
+        )
+        st.markdown("<div class='roi-hint'>Total patients monitored and scored each night.</div>", unsafe_allow_html=True)
 
-        _ri1, _ri2 = st.columns(2)
-        with _ri1:
-            patients_n = st.number_input(
-                "Patients in the programme",
-                min_value=100, max_value=100_000, value=5000, step=500,
-            )
-            st.markdown("<div class='roi-hint'>Total patients monitored and scored each night.</div>", unsafe_allow_html=True)
+        cost_per_patient = st.number_input(
+            "Programme cost per patient / year ($)",
+            min_value=5, max_value=500, value=50, step=5,
+        )
+        st.markdown("<div class='roi-hint'>Includes platform fee, outreach messages and care-manager escalations. Typical range: $30–$80.</div>", unsafe_allow_html=True)
 
-            cost_per_patient = st.number_input(
-                "Programme cost per patient / year ($)",
-                min_value=5, max_value=500, value=50, step=5,
-            )
-            st.markdown("<div class='roi-hint'>Includes platform fee, outreach messages and care-manager escalations. Typical range: $30–$80.</div>", unsafe_allow_html=True)
+    with _ri2:
+        success_pct = st.slider(
+            "Outreach success rate",
+            min_value=20, max_value=80, value=45, format="%d%%",
+        )
+        st.markdown("<div class='roi-hint'>% of outreach contacts that lead to a refill. Benchmark: 35–50%.</div>", unsafe_allow_html=True)
 
-        with _ri2:
-            success_pct = st.slider(
-                "Outreach success rate",
-                min_value=20, max_value=80, value=45, format="%d%%",
-            )
-            st.markdown("<div class='roi-hint'>% of outreach contacts that lead to a refill. Benchmark: 35–50%.</div>", unsafe_allow_html=True)
+        hosp_cost = st.number_input(
+            "Avg hospitalisation cost ($)",
+            min_value=5000, max_value=50000, value=15000, step=1000,
+        )
+        st.markdown("<div class='roi-hint'>US average for a preventable medication-related admission: $12k–$18k.</div>", unsafe_allow_html=True)
 
-            hosp_cost = st.number_input(
-                "Avg hospitalisation cost ($)",
-                min_value=5000, max_value=50000, value=15000, step=1000,
-            )
-            st.markdown("<div class='roi-hint'>US average for a preventable medication-related admission: $12k–$18k.</div>", unsafe_allow_html=True)
+    # Formula rationale:
+    #   50% of monitored patients are high-risk and receive outreach.
+    #   Of those, success_pct% are successfully re-engaged (refill confirmed).
+    #   Evidence shows ~16% of successfully re-engaged patients would otherwise
+    #   have been hospitalised within the year (AHRQ / CMS non-adherence data).
+    #   Programme cost = flat per-patient annual fee (platform + messaging + escalation).
+    #   With defaults this yields ≈ 11 : 1, consistent with published CVD-management ROI.
+    est_interventions = patients_n * 0.5
+    est_successful    = est_interventions * (success_pct / 100)
+    est_cost          = patients_n * cost_per_patient
+    est_avoided       = est_successful * 0.163        # ~16% hospitalization avoidance rate
+    est_savings       = est_avoided * hosp_cost
+    est_roi_ratio     = est_savings / est_cost if est_cost > 0 else 0
 
-        # Formula rationale:
-        #   50% of monitored patients are high-risk and receive outreach.
-        #   Of those, success_pct% are successfully re-engaged (refill confirmed).
-        #   Evidence shows ~16% of successfully re-engaged patients would otherwise
-        #   have been hospitalised within the year (AHRQ / CMS non-adherence data).
-        #   Programme cost = flat per-patient annual fee (platform + messaging + escalation).
-        #   With defaults this yields ≈ 11 : 1, consistent with published CVD-management ROI.
-        est_interventions = patients_n * 0.5
-        est_successful    = est_interventions * (success_pct / 100)
-        est_cost          = patients_n * cost_per_patient
-        est_avoided       = est_successful * 0.163        # ~16% hospitalization avoidance rate
-        est_savings       = est_avoided * hosp_cost
-        est_roi_ratio     = est_savings / est_cost if est_cost > 0 else 0
-
-        _roi_lbl  = f"${est_roi_ratio:.0f} : $1"
-        _sav_lbl  = f"${est_savings:,.0f}"
-        _cost_lbl = f"${est_cost:,.0f}"
-        _avd_lbl  = f"{est_avoided:,.0f}"
-        st.markdown(
-            f"""
-            <div style="border-top:2px solid #e8e8e4; margin:1rem 0 0.75rem;
-                        padding-top:0.25rem; font-size:11px; text-transform:uppercase;
-                        letter-spacing:0.1em; color:#aaa; font-weight:600;">Projected result</div>
-            <div style="background:{COLORS['ink']};border-radius:10px;padding:1.5rem;text-align:center;">
-                <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;
-                            color:rgba(255,255,255,0.45);margin-bottom:0.4rem;font-weight:600;">
-                    Return on investment</div>
-                <div style="font-size:3rem;font-weight:300;color:#fff;
-                            letter-spacing:-0.03em;line-height:1;margin-bottom:1rem;">
-                    {_roi_lbl}</div>
-                <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;">
-                    <div>
-                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                    color:rgba(255,255,255,0.4);margin-bottom:3px;">Hospitalisations avoided</div>
-                        <div style="font-size:1.2rem;font-weight:300;color:#fff;">{_avd_lbl}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                    color:rgba(255,255,255,0.4);margin-bottom:3px;">Total savings</div>
-                        <div style="font-size:1.2rem;font-weight:300;color:{COLORS['low']};">{_sav_lbl}</div>
-                    </div>
-                    <div>
-                        <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
-                                    color:rgba(255,255,255,0.4);margin-bottom:3px;">Programme cost</div>
-                        <div style="font-size:1.2rem;font-weight:300;color:rgba(255,255,255,0.55);">{_cost_lbl}</div>
-                    </div>
+    _roi_lbl  = f"${est_roi_ratio:.0f} : $1"
+    _sav_lbl  = f"${est_savings:,.0f}"
+    _cost_lbl = f"${est_cost:,.0f}"
+    _avd_lbl  = f"{est_avoided:,.0f}"
+    st.markdown(
+        f"""
+        <div style="border-top:2px solid #e8e8e4; margin:1rem 0 0.75rem;
+                    padding-top:0.25rem; font-size:11px; text-transform:uppercase;
+                    letter-spacing:0.1em; color:#aaa; font-weight:600;">Projected result</div>
+        <div style="background:{COLORS['ink']};border-radius:10px;padding:1.5rem;text-align:center;">
+            <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.12em;
+                        color:rgba(255,255,255,0.45);margin-bottom:0.4rem;font-weight:600;">
+                Return on investment</div>
+            <div style="font-size:3rem;font-weight:300;color:#fff;
+                        letter-spacing:-0.03em;line-height:1;margin-bottom:1rem;">
+                {_roi_lbl}</div>
+            <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;">
+                <div>
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Hospitalisations avoided</div>
+                    <div style="font-size:1.2rem;font-weight:300;color:#fff;">{_avd_lbl}</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Total savings</div>
+                    <div style="font-size:1.2rem;font-weight:300;color:{COLORS['low']};">{_sav_lbl}</div>
+                </div>
+                <div>
+                    <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;
+                                color:rgba(255,255,255,0.4);margin-bottom:3px;">Programme cost</div>
+                    <div style="font-size:1.2rem;font-weight:300;color:rgba(255,255,255,0.55);">{_cost_lbl}</div>
                 </div>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
