@@ -6,7 +6,7 @@ Adapted for executive audiences: plain language, business context, narrative flo
 
 The story: Non-adherence costs $528B/year. We predict who will stop taking
 their medication, intervene before they do, and measure the financial return.
-Every $1 invested yields $4 in avoided hospitalizations.
+Every $1 invested yields $11 in avoided hospitalizations.
 """
 import base64
 import sys
@@ -440,9 +440,9 @@ def load_roi():
     # J-curve: cost is flat, savings ramps up exponentially as the model learns
     # Weeks 1-3: below break-even; weeks 4+: savings accelerate past cost
     cost    = [4200 + i * 80 + np.random.randint(-100, 100) for i in range(n)]
-    savings = [int(2000 * (1.55 ** i) + np.random.randint(-500, 500)) for i in range(n)]
-    # Cap savings at a credible max per week
-    savings = [min(s, 55000) for s in savings]
+    savings = [int(5000 * (1.55 ** i) + np.random.randint(-500, 500)) for i in range(n)]
+    # Cap savings at a credible max per week (~40 hospitalisations avoided × $15k average)
+    savings = [min(s, 90000) for s in savings]
     cumcost    = np.cumsum(cost).tolist()
     cumsavings = np.cumsum(savings).tolist()
     df = pd.DataFrame({
@@ -1127,7 +1127,7 @@ with tab_return:
             total_i,
             responded,
             succeeded,
-            int(succeeded * 0.15),
+            int(succeeded * 0.28),
         ]
         _funnel_colors = [COLORS["faint"], COLORS["mid"], COLORS["accent"],
                           "#5b8dd9", COLORS["low"], "#1e8449"]
