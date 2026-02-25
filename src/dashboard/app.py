@@ -805,7 +805,7 @@ with tab_how:
                         "risk_score": 87, "risk_level": "high", "confidence_score": 0.91,
                         "top_risk_factors": [
                             {"factor_name": "days_since_last_fill", "impact_score": 0.82, "description": "54 days since last Metformin fill"},
-                            {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61% &mdash; below 80% target"},
+                            {"factor_name": "pdc_90_days",          "impact_score": 0.71, "description": "PDC dropped to 61%, below 80% target"},
                             {"factor_name": "gap_count",            "impact_score": 0.58, "description": "3 refill gaps in the last 6 months"},
                         ],
                     }
@@ -817,7 +817,7 @@ with tab_how:
                 sc      = COLORS["high"] if level == "high" else COLORS["mid"] if level == "medium" else COLORS["low"]
                 factors = pred.get("top_risk_factors", [])
                 _fl = {
-                    "pdc_90_days": "Medication coverage &mdash; last 90 days",
+                    "pdc_90_days": "Medication coverage, last 90 days",
                     "gap_count": "Number of refill gaps",
                     "days_since_last_fill": "Days since last fill",
                 }
@@ -1012,15 +1012,26 @@ with tab_return:
         a {success_rate:.0%} success rate &mdash; generating
         <span class="highlight-green">${total_savings:,.0f} in avoided hospitalisations</span>
         on an investment of <strong>${total_cost:,.0f}</strong>.
-        That's <strong>${roi_ratio:.0f} back for every $1 in</strong>.
+        That's <strong>${roi_ratio:.0f} back for every $1 invested</strong>.
     </p>
     """, unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Interventions sent",      f"{total_i}")
-    c2.metric("Led to a refill",         f"{succeeded}", delta=f"{success_rate:.0%} success rate")
+    c1.metric("Interventions sent",       f"{total_i}")
+    c2.metric("Led to a refill",          f"{succeeded}", delta=f"{success_rate:.0%} success rate")
     c3.metric("Avoided hospitalisations", f"${total_savings:,.0f}")
-    c4.metric("Return on investment",    f"${roi_ratio:.0f} : $1")
+    # st.metric renders "$N : $1" as LaTeX — use plain HTML card instead
+    _roi_str = f"{roi_ratio:.0f} : 1"
+    c4.markdown(f"""
+    <div style="border:1px solid #e8e8e4;border-radius:8px;padding:1rem 1.25rem;background:#fff;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;
+                    color:#aaa;font-weight:600;margin-bottom:0.4rem;">Return on investment</div>
+        <div style="font-size:2rem;font-weight:300;color:#1a1a1a;line-height:1.1;">
+            <span style="font-size:1.1rem;color:#aaa;font-weight:400;">$</span>{_roi_str.split(' :')[0]}
+            <span style="font-size:1rem;color:#aaa;font-weight:400;"> : $1</span>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
