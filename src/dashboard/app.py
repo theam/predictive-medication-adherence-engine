@@ -920,7 +920,7 @@ with tab_how:
             f"{check}</div>"
         )
 
-    _ac_pad, _ac_col, _ac_pad2 = st.columns([1, 4, 1])
+    _ac_pad, _ac_col, _ac_pad2 = st.columns([0, 4, 1])
     with _ac_col:
 
         # STEP 0
@@ -1339,7 +1339,7 @@ with tab_return:
     </style>
     """, unsafe_allow_html=True)
 
-    _roi_pad, _roi_col, _roi_pad2 = st.columns([1, 4, 1])
+    _roi_pad, _roi_col, _roi_pad2 = st.columns([0, 4, 1])
     with _roi_col:
 
         _ri1, _ri2 = st.columns(2)
