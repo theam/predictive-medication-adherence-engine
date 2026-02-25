@@ -498,25 +498,77 @@ with tab_problem:
     avg_copay = high_df["copay"].mean()
     cost_inaction = int(len(high_df) * 0.15 * 15000)
 
+    # ── Opening narrative: the $528B problem ──────────────────────────────
     st.markdown(f"""
     <p class="narrative">
+        Medication non-adherence costs the U.S. healthcare system
+        <strong>$528 billion per year</strong> in avoidable hospitalizations,
+        disease progression, and lost pharmacy revenue.
         In this simulation of <strong>{total:,} patients</strong>,
-        the engine flags <span class="highlight-red">{high} as high risk</span>
-        of stopping their medication within the next 30 days.
-        Left unaddressed, that's up to
-        <span class="highlight-red">${cost_inaction:,} in avoidable hospitalisations</span>
-        — for this cohort alone.
+        the engine flags
+        <span class="highlight-red">{high} as high risk</span> of stopping their
+        medication in the next 30 days — and <span class="highlight-red">{below_target}</span>
+        are already below the 80% adherence target.
     </p>
     """, unsafe_allow_html=True)
 
     c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Patients monitored", f"{total:,}")
-    c2.metric("Flagged high risk",  f"{high}",        delta=f"{high/total:.0%} of population")
-    c3.metric("Avg adherence",      f"{avg_pdc:.0%}", delta="Target is 80%")
-    c4.metric("Trending down",      f"{declining}",   delta=f"{declining/total:.0%} getting worse")
+    c1.metric("Simulated patients",   f"{total:,}")
+    c2.metric("Flagged at risk",      f"{high + med}", delta=f"{(high+med)/total:.0%} of population")
+    c3.metric("Taking meds regularly",f"{avg_pdc:.0%}", delta="80% is the target")
+    c4.metric("Getting worse",        f"{declining}",  delta=f"{declining/total:.0%} trending down")
 
-    st.markdown(f"""
+    # ── How it works: 4-step logic ────────────────────────────────────────
+    st.markdown("""
     <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+                color:#aaa;font-weight:600;margin-bottom:0.75rem;">How the engine responds</div>
+    <div style="background:#fff;border:1px solid #e8e8e4;border-radius:8px;padding:1.25rem 1.5rem;">
+        <div class="step-row">
+            <div class="step-num">1</div>
+            <div class="step-content">
+                <div class="step-title">Predict</div>
+                <div class="step-desc">The model analyzes 50+ variables per patient — fill history,
+                    gaps between refills, copay burden, diagnoses — and scores each patient
+                    0–100 on their likelihood of stopping.</div>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">2</div>
+            <div class="step-content">
+                <div class="step-title">Intervene</div>
+                <div class="step-desc">High-risk patients receive automated outreach
+                    via SMS, email, phone, or chatbot — personalized to their barrier.
+                    Cost issue? We surface discount programs. Forgetfulness? We send reminders.</div>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">3</div>
+            <div class="step-content">
+                <div class="step-title">Escalate</div>
+                <div class="step-desc">If a patient doesn't respond, the system escalates —
+                    from SMS to a phone call to a care manager. No one falls through the cracks.</div>
+            </div>
+        </div>
+        <div class="step-row">
+            <div class="step-num">4</div>
+            <div class="step-content">
+                <div class="step-title">Measure</div>
+                <div class="step-desc">Every intervention is tracked. Every $1 invested
+                    yields approximately $4 in avoided hospitalizations and retained pharmacy revenue.</div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Divider before charts ──────────────────────────────────────────────
+    st.markdown("""
+    <div style="border-top:1px solid #e8e8e4; margin:1.5rem 0 1rem;"></div>
+    <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
+                color:#aaa;font-weight:600;margin-bottom:0.75rem;">Population at a glance</div>
+    """, unsafe_allow_html=True)
+
+    st.markdown("""
     <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.1em;
                 color:#aaa;font-weight:600;margin-bottom:0.75rem;">Population risk distribution</div>
     """, unsafe_allow_html=True)
