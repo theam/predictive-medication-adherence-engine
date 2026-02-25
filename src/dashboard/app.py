@@ -763,6 +763,18 @@ with tab_problem:
         use_container_width=True, height=420, hide_index=True,
     )
 
+    st.markdown("""
+    <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e8e8e4;text-align:right;">
+        <button onclick="window.parent.document.querySelectorAll('[data-baseweb=tab]')[1].click()"
+            style="background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;
+                   font-size:0.8rem;font-weight:500;color:#1a1a1a;letter-spacing:0.04em;
+                   padding:0;opacity:0.6;transition:opacity 0.2s;"
+            onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+            The Platform &rarr;
+        </button>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 # ═══════════════════════════════════════════════════════════════
 # TAB 2: HOW IT WORKS
@@ -818,51 +830,38 @@ with tab_how:
         "Refill consistency score: low",
     ]
 
-    queue_html = """
-    <style>
-    .queue-wrap  { display:inline-block; max-width:100%; }
-    .queue-table {
-        border:1px solid #e8e8e4; border-radius:8px; overflow:hidden;
-        background:#fff; border-collapse:collapse; white-space:nowrap;
-    }
-    .queue-table th {
-        font-size:10px; font-weight:600; text-transform:uppercase;
-        letter-spacing:0.08em; color:#aaa;
-        padding:0.55rem 1rem; background:#f9f9f7;
-        border-bottom:1px solid #e8e8e4; text-align:left;
-    }
-    .queue-table td {
-        font-size:12px; color:#555;
-        padding:0.6rem 1rem;
-        border-bottom:1px solid #f5f5f0;
-    }
-    .queue-table tr:last-child td { border-bottom:none; }
-    </style>
-    <div class="queue-wrap">
-    <table class="queue-table">
-      <thead><tr>
-        <th>Patient</th><th>Why flagged</th><th>Risk</th>
-        <th>Gap</th><th>Medication</th><th>Channel</th>
-      </tr></thead><tbody>
-    """
     _ch_options = ["SMS", "SMS", "SMS", "Email", "Email", "Push", "Voice", "SMS"]
+    queue_html = "<div style='border:1px solid #e8e8e4;border-radius:10px;overflow:hidden;background:#fff;'>"
+    # header row
+    queue_html += (
+        "<div style='display:grid;grid-template-columns:70px 1fr 60px 55px 120px 70px;"
+        "padding:0.5rem 1.1rem;background:#f9f9f7;border-bottom:1px solid #e8e8e4;gap:1rem;'>"
+        + "".join(
+            f"<div style='font-size:10px;font-weight:600;text-transform:uppercase;"
+            f"letter-spacing:0.08em;color:#aaa;'>{h}</div>"
+            for h in ["Patient", "Why flagged", "Risk", "Gap", "Medication", "Channel"]
+        )
+        + "</div>"
+    )
     for _qi, (_, row) in enumerate(_top_queue.iterrows()):
         risk_color = COLORS["high"] if row["risk"] >= 70 else COLORS["mid"]
         ch_label   = _ch_options[_qi % len(_ch_options)]
         why        = _why_flagged[_qi % len(_why_flagged)]
+        border     = "" if _qi == len(_top_queue) - 1 else "border-bottom:1px solid #f5f5f0;"
         queue_html += (
-            f"<tr>"
-            f"<td style='font-weight:600;color:{COLORS['ink']};'>{row['id']}</td>"
-            f"<td style='color:{COLORS['body']};max-width:220px;white-space:normal;'>{why}</td>"
-            f"<td style='font-weight:600;color:{risk_color};'>{row['risk']:.0f}</td>"
-            f"<td style='color:{COLORS['body']};'>{int(row['days_gap'])}d</td>"
-            f"<td style='color:{COLORS['body']};'>{row['medication']}</td>"
-            f"<td><span style='font-size:10px;font-weight:600;text-transform:uppercase;"
+            f"<div style='display:grid;grid-template-columns:70px 1fr 60px 55px 120px 70px;"
+            f"padding:0.65rem 1.1rem;gap:1rem;align-items:center;{border}'>"
+            f"<div style='font-size:12px;font-weight:600;color:{COLORS['ink']};'>{row['id']}</div>"
+            f"<div style='font-size:12px;color:{COLORS['body']};'>{why}</div>"
+            f"<div style='font-size:12px;font-weight:600;color:{risk_color};'>{row['risk']:.0f}</div>"
+            f"<div style='font-size:12px;color:{COLORS['body']};'>{int(row['days_gap'])}d</div>"
+            f"<div style='font-size:12px;color:{COLORS['body']};'>{row['medication']}</div>"
+            f"<div><span style='font-size:10px;font-weight:600;text-transform:uppercase;"
             f"letter-spacing:0.06em;background:#f0f0ec;color:{COLORS['body']};"
-            f"padding:2px 8px;border-radius:3px;'>{ch_label}</span></td>"
-            f"</tr>"
+            f"padding:2px 8px;border-radius:3px;'>{ch_label}</span></div>"
+            f"</div>"
         )
-    queue_html += "</tbody></table></div>"
+    queue_html += "</div>"
     st.markdown(queue_html, unsafe_allow_html=True)
 
     st.markdown(f"""
@@ -1122,6 +1121,18 @@ with tab_how:
                           "journey_conv", "journey_refill", _step_key]:
                     st.session_state.pop(k, None)
                 st.rerun()
+
+    st.markdown("""
+    <div style="margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid #e8e8e4;text-align:right;">
+        <button onclick="window.parent.document.querySelectorAll('[data-baseweb=tab]')[2].click()"
+            style="background:none;border:none;cursor:pointer;font-family:Inter,sans-serif;
+                   font-size:0.8rem;font-weight:500;color:#1a1a1a;letter-spacing:0.04em;
+                   padding:0;opacity:0.6;transition:opacity 0.2s;"
+            onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.6">
+            The Return &rarr;
+        </button>
+    </div>
+    """, unsafe_allow_html=True)
 
 
 # ═══════════════════════════════════════════════════════════════
