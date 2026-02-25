@@ -681,49 +681,48 @@ with tab_how:
 
     queue_html = """
     <style>
-    .queue-table { width:100%; border:1px solid #e8e8e4; border-radius:8px; overflow:hidden; background:#fff; }
-    .queue-row-header, .queue-row {
-        display: grid;
-        grid-template-columns: 60px 80px 1fr 60px 80px 80px;
-        gap: 0; align-items: center;
+    .queue-wrap  { display:inline-block; max-width:100%; }
+    .queue-table {
+        border:1px solid #e8e8e4; border-radius:8px; overflow:hidden;
+        background:#fff; border-collapse:collapse; white-space:nowrap;
     }
-    .queue-row-header { background:#f9f9f7; border-bottom:1px solid #e8e8e4; }
-    .queue-row-header span {
-        font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em;
-        color:#aaa; padding:0.6rem 0.75rem;
+    .queue-table th {
+        font-size:10px; font-weight:600; text-transform:uppercase;
+        letter-spacing:0.08em; color:#aaa;
+        padding:0.55rem 1rem; background:#f9f9f7;
+        border-bottom:1px solid #e8e8e4; text-align:left;
     }
-    .queue-row { border-bottom:1px solid #f5f5f0; }
-    .queue-row:last-child { border-bottom:none; }
-    .queue-row span { font-size:12px; color:#555; padding:0.65rem 0.75rem; }
-    .queue-col-medication { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    @media (max-width:768px) {
-        .queue-row-header, .queue-row { grid-template-columns: 60px 1fr 55px 70px; }
-        .queue-col-medication, .queue-col-channel { display:none !important; }
+    .queue-table td {
+        font-size:12px; color:#555;
+        padding:0.6rem 1rem;
+        border-bottom:1px solid #f5f5f0;
     }
+    .queue-table tr:last-child td { border-bottom:none; }
     </style>
-    <div class="queue-table">
-      <div class="queue-row-header">
-        <span>Patient</span><span>Risk</span><span>Condition</span>
-        <span>Gap</span><span class="queue-col-medication">Medication</span>
-        <span class="queue-col-channel">Channel</span>
-      </div>
+    <div class="queue-wrap">
+    <table class="queue-table">
+      <thead><tr>
+        <th>Patient</th><th>Risk</th><th>Condition</th>
+        <th>Gap</th><th>Medication</th><th>Channel</th>
+      </tr></thead><tbody>
     """
     _ch_options = ["SMS", "SMS", "SMS", "Email", "Email", "Push", "Voice", "SMS"]
     for _qi, (_, row) in enumerate(_top_queue.iterrows()):
         risk_color = COLORS["high"] if row["risk"] >= 70 else COLORS["mid"]
         ch_label   = _ch_options[_qi % len(_ch_options)]
-        queue_html += f"""
-      <div class="queue-row">
-        <span style=\"font-weight:600;color:{COLORS['ink']};\">{row['id']}</span>
-        <span style=\"font-weight:600;color:{risk_color};\">{row['risk']:.0f}</span>
-        <span style=\"font-size:12px;color:{COLORS['body']};\">{row['condition']}</span>
-        <span style=\"font-size:12px;color:{COLORS['body']};\">{int(row['days_gap'])}d</span>
-        <span class=\"queue-col-medication\" style=\"font-size:12px;color:{COLORS['body']};\">{row['medication']}</span>
-        <span class=\"queue-col-channel\" style=\"font-size:10px;font-weight:600;text-transform:uppercase;
-             letter-spacing:0.06em;background:#f0f0ec;color:{COLORS['body']};
-             padding:2px 8px;border-radius:3px;\">{ch_label}</span>
-      </div>"""
-    queue_html += "</div>"
+        queue_html += (
+            f"<tr>"
+            f"<td style='font-weight:600;color:{COLORS['ink']};'>{row['id']}</td>"
+            f"<td style='font-weight:600;color:{risk_color};'>{row['risk']:.0f}</td>"
+            f"<td style='color:{COLORS['body']};'>{row['condition']}</td>"
+            f"<td style='color:{COLORS['body']};'>{int(row['days_gap'])}d</td>"
+            f"<td style='color:{COLORS['body']};'>{row['medication']}</td>"
+            f"<td><span style='font-size:10px;font-weight:600;text-transform:uppercase;"
+            f"letter-spacing:0.06em;background:#f0f0ec;color:{COLORS['body']};"
+            f"padding:2px 8px;border-radius:3px;'>{ch_label}</span></td>"
+            f"</tr>"
+        )
+    queue_html += "</tbody></table></div>"
     st.markdown(queue_html, unsafe_allow_html=True)
 
     st.markdown(f"""
