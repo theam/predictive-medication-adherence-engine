@@ -563,7 +563,7 @@ with tab_problem:
     def _kpi(label, value, sub, sub_color="#888"):
         return (
             f"<div style='background:#fff;border:1px solid #e8e8e4;border-radius:8px;"
-            f"padding:1rem 1.25rem;min-height:110px;box-sizing:border-box;"
+            f"padding:1rem 1.25rem;flex:1;box-sizing:border-box;"
             f"display:flex;flex-direction:column;justify-content:space-between;'>"
             f"<div style='font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;"
             f"color:#888;font-weight:500;line-height:1.3;margin-bottom:0.4rem;'>{label}</div>"
@@ -574,12 +574,16 @@ with tab_problem:
             f"</div>"
         )
 
-    _k1, _k2, _k3, _k4, _k5 = st.columns(5)
-    _k1.markdown(_kpi("Cost of inaction",      f"${cost_inaction:,.0f}", "if high-risk go untreated", "#c0392b"), unsafe_allow_html=True)
-    _k2.markdown(_kpi("Simulated patients",    f"{total:,}",             "in this demo population"),   unsafe_allow_html=True)
-    _k3.markdown(_kpi("Flagged at risk",       f"{high + med}",          f"{(high+med)/total:.0%} of population", "#c0392b"), unsafe_allow_html=True)
-    _k4.markdown(_kpi("Taking meds regularly", f"{avg_pdc:.0%}",         "80% is the target"),         unsafe_allow_html=True)
-    _k5.markdown(_kpi("Trending down",         f"{declining}",           f"{declining/total:.0%} of population", "#c0392b"), unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='display:flex;gap:1rem;align-items:stretch;margin-bottom:1rem;'>"
+        + _kpi("Cost of inaction",      f"${cost_inaction:,.0f}", "if high-risk go untreated", "#c0392b")
+        + _kpi("Simulated patients",    f"{total:,}",             "in this demo population")
+        + _kpi("Flagged at risk",       f"{high + med}",          f"{(high+med)/total:.0%} of population", "#c0392b")
+        + _kpi("Taking meds regularly", f"{avg_pdc:.0%}",         "80% is the target")
+        + _kpi("Trending down",         f"{declining}",           f"{declining/total:.0%} of population", "#c0392b")
+        + "</div>",
+        unsafe_allow_html=True,
+    )
 
     # ── How it works: 4-step logic ────────────────────────────────────────
     st.markdown("""
@@ -1147,7 +1151,7 @@ with tab_return:
     def _ret_kpi(label, value, sub, val_color="#1a1a1a", sub_color="#888"):
         return (
             f"<div style='background:#fff;border:1px solid #e8e8e4;border-radius:8px;"
-            f"padding:1rem 1.25rem;min-height:110px;box-sizing:border-box;"
+            f"padding:1rem 1.25rem;flex:1;box-sizing:border-box;"
             f"display:flex;flex-direction:column;justify-content:space-between;'>"
             f"<div style='font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;"
             f"color:#888;font-weight:500;line-height:1.3;margin-bottom:0.4rem;'>{label}</div>"
@@ -1159,17 +1163,25 @@ with tab_return:
         )
 
     # Row 1: operational metrics
-    c1, c2, c3 = st.columns(3)
-    c1.markdown(_ret_kpi("Interventions sent",  f"{total_i}",          "automated, no manual trigger"),       unsafe_allow_html=True)
-    c2.markdown(_ret_kpi("Led to a refill",     f"{succeeded}",        f"{success_rate:.0%} success rate",    sub_color=COLORS["low"]), unsafe_allow_html=True)
-    c3.markdown(_ret_kpi("Avg time to respond", f"{avg_h:.0f}h",       "from send to patient reply"),         unsafe_allow_html=True)
+    _roi_str = f"{roi_ratio:.0f} : 1"
+    st.markdown(
+        f"<div style='display:flex;gap:1rem;align-items:stretch;margin-bottom:1rem;'>"
+        + _ret_kpi("Interventions sent",       f"{total_i}",              "automated, no manual trigger")
+        + _ret_kpi("Led to a refill",          f"{succeeded}",            f"{success_rate:.0%} success rate", sub_color=COLORS["low"])
+        + _ret_kpi("Avg time to respond",      f"{avg_h:.0f}h",           "from send to patient reply")
+        + "</div>",
+        unsafe_allow_html=True,
+    )
 
     # Row 2: financial metrics
-    _roi_str = f"{roi_ratio:.0f} : 1"
-    _r1, _r2, _r3 = st.columns(3)
-    _r1.markdown(_ret_kpi("Avoided hospitalisations", f"${total_savings:,.0f}", "12-week total", val_color=COLORS["low"]), unsafe_allow_html=True)
-    _r2.markdown(_ret_kpi("Programme cost",           f"${total_cost:,.0f}",   "12-week total"), unsafe_allow_html=True)
-    _r3.markdown(_ret_kpi("Return on investment",     f"${_roi_str}",          "12-week simulation", val_color="#1a1a1a"), unsafe_allow_html=True)
+    st.markdown(
+        f"<div style='display:flex;gap:1rem;align-items:stretch;margin-bottom:1rem;'>"
+        + _ret_kpi("Avoided hospitalisations", f"${total_savings:,.0f}",  "12-week total", val_color=COLORS["low"])
+        + _ret_kpi("Programme cost",           f"${total_cost:,.0f}",     "12-week total")
+        + _ret_kpi("Return on investment",     f"${_roi_str}",            "12-week simulation")
+        + "</div>",
+        unsafe_allow_html=True,
+    )
 
     # ── Intervention pipeline ─────────────────────────────────────────────
     st.markdown("""
