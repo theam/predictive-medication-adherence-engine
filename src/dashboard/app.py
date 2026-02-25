@@ -40,12 +40,22 @@ COLORS = {
     "accent": "#2c3e50",
 }
 
+_AXIS_STYLE = dict(
+    tickfont=dict(color="#1a1a1a", size=11, family="Inter, sans-serif"),
+    titlefont=dict(color="#1a1a1a", size=11, family="Inter, sans-serif"),
+    gridcolor="#f0f0ec",
+    linecolor="#e8e8e4",
+    zerolinecolor="#e8e8e4",
+)
+
 PLOTLY_BASE = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
-    font=dict(family="Inter, Helvetica Neue, sans-serif", size=12, color=COLORS["ink"]),
+    font=dict(family="Inter, Helvetica Neue, sans-serif", size=12, color="#1a1a1a"),
     margin=dict(l=0, r=0, t=8, b=0),
     showlegend=False,
+    xaxis=_AXIS_STYLE,
+    yaxis=_AXIS_STYLE,
 )
 
 
@@ -213,6 +223,70 @@ st.markdown("""
 
     [data-baseweb="select"], [data-baseweb="input"] {
         border-radius: 6px !important; font-size: 0.85rem !important;
+    }
+
+    /* ── Force dark text on ALL form elements globally ── */
+
+    /* All widget labels */
+    .stTextInput label, .stNumberInput label, .stSelectbox label,
+    .stSlider label, .stRadio label, .stCheckbox label,
+    .stTextArea label, .stMultiSelect label,
+    [data-testid="stWidgetLabel"], [data-testid="stWidgetLabel"] p,
+    .stSlider p, .stNumberInput p {
+        color: #1a1a1a !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    /* Number input boxes */
+    .stNumberInput input, .stTextInput input, .stTextArea textarea {
+        background: #ffffff !important;
+        color: #1a1a1a !important;
+        border: 1px solid #e0e0da !important;
+        border-radius: 6px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 13px !important;
+    }
+    .stNumberInput input:focus, .stTextInput input:focus {
+        border-color: #1a1a1a !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    /* Number input stepper buttons */
+    .stNumberInput [data-testid="stNumberInputStepDown"],
+    .stNumberInput [data-testid="stNumberInputStepUp"] {
+        background: #f5f5f0 !important;
+        color: #1a1a1a !important;
+        border-color: #e0e0da !important;
+    }
+
+    /* Slider value label and thumb */
+    .stSlider [data-testid="stTickBarMin"],
+    .stSlider [data-testid="stTickBarMax"],
+    .stSlider [data-baseweb="slider"] [role="slider"],
+    .stSlider div[data-testid] {
+        color: #1a1a1a !important;
+    }
+    .stSlider [aria-valuetext] { color: #1a1a1a !important; }
+
+    /* Selectbox dropdown */
+    [data-baseweb="select"] div {
+        background: #ffffff !important;
+        color: #1a1a1a !important;
+    }
+
+    /* Plotly chart axis text — override SVG fill */
+    .js-plotly-plot .plotly .gtitle,
+    .js-plotly-plot .plotly .xtitle,
+    .js-plotly-plot .plotly .ytitle,
+    .js-plotly-plot .plotly .xtick text,
+    .js-plotly-plot .plotly .ytick text,
+    .js-plotly-plot .plotly .legend text,
+    .js-plotly-plot .plotly text {
+        fill: #1a1a1a !important;
+        color: #1a1a1a !important;
     }
 
     #MainMenu { visibility: hidden; }
