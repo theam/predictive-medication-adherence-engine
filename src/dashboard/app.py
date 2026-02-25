@@ -40,23 +40,15 @@ COLORS = {
     "accent": "#2c3e50",
 }
 
-_AXIS_STYLE = dict(
-    tickfont=dict(color="#1a1a1a", size=11, family="Inter, sans-serif"),
-    titlefont=dict(color="#1a1a1a", size=11, family="Inter, sans-serif"),
-    gridcolor="#f0f0ec",
-    linecolor="#e8e8e4",
-    zerolinecolor="#e8e8e4",
-)
-
 PLOTLY_BASE = dict(
     paper_bgcolor="rgba(0,0,0,0)",
     plot_bgcolor="rgba(0,0,0,0)",
     font=dict(family="Inter, Helvetica Neue, sans-serif", size=12, color="#1a1a1a"),
     margin=dict(l=0, r=0, t=8, b=0),
     showlegend=False,
-    xaxis=_AXIS_STYLE,
-    yaxis=_AXIS_STYLE,
 )
+
+_AXIS_FONT = dict(color="#1a1a1a", size=11, family="Inter, sans-serif")
 
 
 def apply_layout(fig, **overrides):
@@ -64,6 +56,9 @@ def apply_layout(fig, **overrides):
     fig.update_layout(**PLOTLY_BASE)
     if overrides:
         fig.update_layout(**overrides)
+    # Force axis colours after all overrides — update_xaxes/yaxes merges safely
+    fig.update_xaxes(tickfont=_AXIS_FONT, titlefont=_AXIS_FONT)
+    fig.update_yaxes(tickfont=_AXIS_FONT, titlefont=_AXIS_FONT)
     return fig
 
 
