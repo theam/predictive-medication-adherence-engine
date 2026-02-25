@@ -56,9 +56,13 @@ def apply_layout(fig, **overrides):
     fig.update_layout(**PLOTLY_BASE)
     if overrides:
         fig.update_layout(**overrides)
-    # Force axis colours after all overrides — update_xaxes/yaxes merges safely
-    fig.update_xaxes(tickfont=_AXIS_FONT, titlefont=_AXIS_FONT)
-    fig.update_yaxes(tickfont=_AXIS_FONT, titlefont=_AXIS_FONT)
+    # Force axis colours only on visible axes (hidden axes reject font updates)
+    x_visible = overrides.get("xaxis", {}).get("visible", True)
+    y_visible = overrides.get("yaxis", {}).get("visible", True)
+    if x_visible:
+        fig.update_xaxes(tickfont=_AXIS_FONT, titlefont=_AXIS_FONT)
+    if y_visible:
+        fig.update_yaxes(tickfont=_AXIS_FONT, titlefont=_AXIS_FONT)
     return fig
 
 
