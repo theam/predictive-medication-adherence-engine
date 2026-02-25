@@ -481,8 +481,8 @@ st.markdown(f"""
 
 # ── Tabs ───────────────────────────────────────────────────────
 
-tab_story, tab_platform, tab_patients, tab_actions, tab_returns = st.tabs([
-    "The Problem", "The Platform", "Who Needs Help", "What We're Doing", "Is It Working"
+tab_problem, tab_how, tab_return = st.tabs([
+    "The Problem", "How It Works", "The Return"
 ])
 
 
